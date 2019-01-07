@@ -3,7 +3,7 @@ This is the repo for the "byteball for web merchant payment gateway" back office
 # *bbfm_www*
 Public website
 
-# *includes files * 
+# *includes files*
 
 /var/www/bbfm_xfiles/bbfm_conf.php : configuration file
 
@@ -12,7 +12,7 @@ Public website
 /var/www/bbfm_xfiles/mysqli_connect.php : connects to mysqli database and setup global $mysqli var
 
 
-# * api: public api *
+# *api: public api*
 
 /var/www/bbfm_www/api/ask_payment.php : 
  - generates and registers new (pending) payment in bbfm database (ajax called by payment-button.js)
@@ -27,7 +27,7 @@ Public website
 /var/www/bbfm_www/api/img/*
 
 
-# * cron *
+# *cron*
 
 /var/www/bbfm_xfiles/bbfm_payer.php : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
 
