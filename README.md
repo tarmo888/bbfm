@@ -5,7 +5,7 @@ bbfm_www directory
 
 # *includes files*
 
-/var/www/bbfm_xfiles/bbfm_conf.php : configuration file
+*/var/www/bbfm_xfiles/bbfm_conf.php* : configuration file
 
 /var/www/bbfm_xfiles/bbfm_function.php : common functions
 
