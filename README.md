@@ -21,10 +21,12 @@ This is the repo for the "byteball for web merchant payment gateway" back office
 /var/www/bbfm_www/api/payment-button.js : payment button javascript (called by front-end script in merchant payment page)
 
 /var/www/bbfm_www/api/icon/*
+
 /var/www/bbfm_www/api/img/*
 
 
 # * CRON *
 
 /var/www/bbfm_xfiles/bbfm_payer.php : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
+
 /var/www/bbfm_xfiles/Get_rates.php : fetches FIAT/Gbytes rates
