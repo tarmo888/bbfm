@@ -1,9 +1,9 @@
-This is the repo for the "byteball for web merchant payment gateway" back office.
+This is the repo for the "byteball for web merchant payment gateway" back office. Requires php 7+ and Mysql 5+
 
 # *Public website*
 bbfm_www directory
 
-# *includes files*
+# *included files*
 
 */var/www/bbfm_xfiles/bbfm_conf.php* : configuration file
 
@@ -34,4 +34,4 @@ bbfm_www directory
 */var/www/bbfm_xfiles/Get_rates.php* : fetches FIAT/Gbytes rates
 
 # *sql*
-schemas
+Mysql schemas
