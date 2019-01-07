@@ -1,5 +1,7 @@
 This is the repo for the "byteball for web merchant payment gateway" back office.
 
+# *bbfm_www*
+Public website
 
 # * INC *
 
