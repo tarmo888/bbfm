@@ -1,4 +1,6 @@
-This is the repo for the "byteball for web merchant payment gateway" back office. Requires php 7+ and Mysql 5+
+This is the repo for the "byteball for web merchant payment gateway" back office and public website.
+
+Requires php 7+, Mysql 5+ and any web server (apache, nginx...)
 
 # *Public website*
 bbfm_www directory
