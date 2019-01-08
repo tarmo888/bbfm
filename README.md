@@ -29,9 +29,9 @@ bbfm_www directory
 
 # *cron*
 
-*/var/www/bbfm_xfiles/bbfm_payer.php* : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
+*bbfm_payer.php* : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
 
-*/var/www/bbfm_xfiles/Get_rates.php* : fetches FIAT/Gbytes rates
+*Get_rates.php* : fetches FIAT/Gbytes rates
 
 # *sql*
 Mysql schemas
