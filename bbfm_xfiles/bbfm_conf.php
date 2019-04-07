@@ -1,5 +1,16 @@
 <?php
 
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (!is_file($autoload)) {
+	die("Run: <i>composer install</i>");
+}
+require_once $autoload;
+
+if (file_exists(__DIR__ . '/../.env')) {
+	$dotenv = Dotenv\Dotenv::create(__DIR__ .'/../');
+	$dotenv->load();
+}
+
 $_currencies = array(
     'USD' => array(
         'decimal' => 2,
@@ -87,12 +98,5 @@ $_currencies = array(
     ),
 );
 
-
-
 $max_amount_BB_asked = 1000000000000;
-
 $min_amount_BB_asked = 1500;
-
-
-
-?>

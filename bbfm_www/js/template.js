@@ -4,18 +4,18 @@
  * Version:1.0.0
  * Created:November 2014
  * License: Creative Commons Attribution 3.0 License (https://creativecommons.org/licenses/by/3.0/)
- * File Description: Initializations of plugins 
+ * File Description: Initializations of plugins
  */
 
 (function($){
 	$(document).ready(function(){
-	
+
 		$(".banner-image").backstretch('images/banner.jpg');
-		
+
 		// Fixed header
 		//-----------------------------------------------
 		$(window).scroll(function() {
-			if (($(".header.fixed").length > 0)) { 
+			if (($(".header.fixed").length > 0)) {
 				if(($(this).scrollTop() > 0) && ($(window).width() > 767)) {
 					$("body").addClass("fixed-header-on");
 				} else {
@@ -25,7 +25,7 @@
 		});
 
 		$(window).load(function() {
-			if (($(".header.fixed").length > 0)) { 
+			if (($(".header.fixed").length > 0)) {
 				if(($(this).scrollTop() > 0) && ($(window).width() > 767)) {
 					$("body").addClass("fixed-header-on");
 				} else {
@@ -34,17 +34,17 @@
 			};
 		});
 
-		//Scroll Spy
+		// Scroll Spy
 		//-----------------------------------------------
 		if($(".scrollspy").length>0) {
 			$("body").addClass("scroll-spy");
-			$('body').scrollspy({ 
+			$('body').scrollspy({
 				target: '.scrollspy',
 				offset: 152
 			});
 		}
 
-		//Smooth Scroll
+		// Smooth Scroll
 		//-----------------------------------------------
 		if ($(".smooth-scroll").length>0) {
 			$('.smooth-scroll a[href*=#]:not([href=#]), a[href*=#]:not([href=#]).smooth-scroll').click(function() {
@@ -101,7 +101,7 @@
 			});
 		};
 
-		//Modal
+		// Modal
 		//-----------------------------------------------
 		if($(".modal").length>0) {
 			$(".modal").each(function() {
@@ -109,30 +109,33 @@
 			});
 		}
 
+		// Count Down Timer
+		//-----------------------------------------------
+		if ($('.countdown').length) {
+			$('.countdown').final_countdown({
+				start : new Date().getTime()/ 1000, //Here use Milisecond. To convert your time you can go to this(https://currentmillis.com/) website.
+				end   : 1499573220,
+				now : new Date().getTime()/ 1000,
+				seconds: {
+					borderColor: '#5677fc',
+					borderWidth: '3'
+				},
+				minutes: {
+					borderColor: '#7e57c2',
+					borderWidth: '3'
+				},
+				hours: {
+					borderColor: '#4db6ac',
+					borderWidth: '3'
+				},
+				days: {
+					borderColor: '#d81b60',
+					borderWidth: '3'
+				}
+			}, function() {
 
-// Count Down Timer
-
-$('.countdown').final_countdown({
-    start : new Date().getTime()/ 1000, //Here use Milisecond. To convert your time you can go to this(https://currentmillis.com/) website. 
-    end   : 1499573220,
-    now : new Date().getTime()/ 1000,
-seconds: {
-borderColor: '#5677fc',
-borderWidth: '3'
-},
-minutes: {
-    borderColor: '#7e57c2',
-    borderWidth: '3'
-},
-hours: {
-    borderColor: '#4db6ac',
-    borderWidth: '3'
-},
-days: {
-    borderColor: '#d81b60',
-    borderWidth: '3'
-}}, function() {
-});
+			});
+		}
 
 	}); // End document ready
 })(this.jQuery);

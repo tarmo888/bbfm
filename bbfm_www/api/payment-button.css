@@ -8,7 +8,7 @@
     box-sizing: content-box;
     clear: both;
 }
-                
+
 #bbfm_payment_qrcode{
 }
 
@@ -20,6 +20,9 @@
     font-size: 70%;
     font-style: italic;
 }
+#bbfm_button_footer a {
+    color: black;
+}
 
 #bbfm_test_notif{
     color: red;
@@ -29,7 +32,7 @@
 .bbfm_completed{
     color: #4F8A10;
     background-color: #DFF2BF;
-    background-image:url('https://byteball-for-merchants.com/api/icon/Valid-Green.png');
+    background-image:url('./icon/Valid-Green.png');
     background-repeat:no-repeat;
     padding: 8px;
     margin-bottom: 8px;
@@ -38,12 +41,12 @@
 .bbfm_processing{
     color: #9F6000;
     background-color: #FEEFB3;
-    background-image: url('https://byteball-for-merchants.com/api/icon/Attention.png');
+    background-image: url('./icon/Attention.png');
     background-repeat:no-repeat;
     padding: 8px;
     margin-bottom: 8px;
 }
-    
+
 
 .bbfm_info, .bbfm_success, .bbfm_warning, .bbfm_error, .bbfm_validation {
     border: 1px solid;
@@ -56,23 +59,23 @@
 .bbfm_info {
     color: #00529B;
     background-color: #BDE5F8;
-    background-image: url('https://byteball-for-merchants.com/api/icon/Info.png');
+    background-image: url('./icon/Info.png');
 }
 
 .bbfm_success {
     color: #4F8A10;
     background-color: #DFF2BF;
-    background-image:url('https://byteball-for-merchants.com/api/icon/Valid-Green.png');
+    background-image:url('./icon/Valid-Green.png');
 }
 
 .bbfm_warning {
     color: #9F6000;
     background-color: #FEEFB3;
-    background-image: url('https://byteball-for-merchants.com/api/icon/Attention.png');
+    background-image: url('./icon/Attention.png');
 }
 
 .bbfm_error {
     color: #D8000C;
     background-color: #FFBABA;
-    background-image: url('https://byteball-for-merchants.com/api/icon/Cancel.png');
+    background-image: url('./icon/Cancel.png');
 }

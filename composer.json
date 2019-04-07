@@ -1,0 +1,10 @@
+{
+	"type": "project",
+	"require": {
+		"php": "7.*",
+		"ext-curl": "*",
+		"ext-mbstring": "*",
+		"vlucas/phpdotenv": "^3.3",
+		"datto/json-rpc-http": "^4.0"
+	}
+}

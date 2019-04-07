@@ -1,39 +1,42 @@
-This is the repo for the "byteball for web merchant payment gateway" back office and public website.
+This is the repo for the "Obyte for web merchant payment gateway" back office and public website.
 
 Requires php 7+, Mysql 5+ and any web server (apache, nginx...)
 
-# *Public website*
-bbfm_www directory
+Run `composer install` to install dependencies.
 
-# *included files*
+Run `cp .env-example .env` to copy configuration file.
 
-*/var/www/bbfm_xfiles/bbfm_conf.php* : configuration file
+Run `nano .env` to edit the configuration variables.
 
-*/var/www/bbfm_xfiles/bbfm_function.php* : common functions
+## included files
 
-*/var/www/bbfm_xfiles/mysqli_connect.php* : connects to mysqli database and setup global $mysqli var
+`bbfm_xfiles/bbfm_conf.php` : configuration file
 
+`bbfm_xfiles/bbfm_function.php` : common functions
 
-# *public api*
+`bbfm_xfiles/mysqli_connect.php` : connects to mysqli database and setup global $mysqli var
 
-*/var/www/bbfm_www/api/ask_payment.php* : 
+## public website and api
+
+`bbfm_www`: website
+
+`bbfm_www/api/ask_payment.php` : 
  - generates and registers new (pending) payment in bbfm database (ajax called by payment-button.js)
  - (ajax) tells to payment button (payment-button.js) current status of an existing payment
 
-*/var/www/bbfm_www/api/payment-button.css* : payment button css style sheet
+`bbfm_www/api/payment-button.css` : payment button css style sheet
 
-*/var/www/bbfm_www/api/payment-button.js* : payment button javascript (called from merchant payment page)
+`bbfm_www/api/payment-button.js` : payment button javascript (called from merchant payment page)
 
-*/var/www/bbfm_www/api/icon/* : self speaking
+`bbfm_www/api/icon/` : self speaking
 
-*/var/www/bbfm_www/api/img/* : self speaking
+`bbfm_www/api/img/` : self speaking
 
+## scheduled tasks
 
-# *cron*
+`cron/bbfm_payer.php` : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
 
-*bbfm_payer.php* : watches incoming transactions and send payment (or error notifications), minus fees, to merchant.
+`cron/Get_rates.php` : fetches FIAT/Gbytes rates
 
-*Get_rates.php* : fetches FIAT/Gbytes rates
-
-# *sql*
+## sql folder
 Mysql schemas

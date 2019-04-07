@@ -1,13 +1,13 @@
 -- MySQL dump 10.13  Distrib 5.7.20, for Linux (x86_64)
 --
--- Host: localhost    Database: byteball
+-- Host: localhost    Database: merchants
 -- ------------------------------------------------------
 -- Server version	5.7.20-0ubuntu0.16.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `bbfm`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `date_creation` datetime NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE `bbfm` (
   PRIMARY KEY (`id`),
   KEY `address_bbfm` (`address_bbfm`),
   KEY `sent_unit` (`sent_unit`)
-) ENGINE=MyISAM AUTO_INCREMENT=29405 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=29405 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,14 +81,15 @@ CREATE TABLE `bbfm` (
 
 DROP TABLE IF EXISTS `bbfm_currency_rate`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_currency_rate` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `code` varchar(4) NOT NULL,
   `BTC_rate` decimal(20,9) unsigned NOT NULL,
   `last_update` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +98,7 @@ CREATE TABLE `bbfm_currency_rate` (
 
 DROP TABLE IF EXISTS `bbfm_ignored_received_unit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_ignored_received_unit` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `creation` datetime NOT NULL,
@@ -105,7 +106,7 @@ CREATE TABLE `bbfm_ignored_received_unit` (
   `amount` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `unit` (`unit`)
-) ENGINE=MyISAM AUTO_INCREMENT=466 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=466 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -114,7 +115,7 @@ CREATE TABLE `bbfm_ignored_received_unit` (
 
 DROP TABLE IF EXISTS `bbfm_merchant`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_merchant` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `merchant_id` varchar(20) NOT NULL,
@@ -123,8 +124,11 @@ CREATE TABLE `bbfm_merchant` (
   PRIMARY KEY (`id`),
   KEY `secret_key` (`secret_key`),
   KEY `merchant_id` (`merchant_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=36 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+INSERT INTO `bbfm_merchant` (`id`, `merchant_id`, `creation`, `secret_key`) VALUES
+(36, 'test_merchant', '0000-00-00 00:00:00', '');
 
 --
 -- Table structure for table `bbfm_partner`
@@ -132,7 +136,7 @@ CREATE TABLE `bbfm_merchant` (
 
 DROP TABLE IF EXISTS `bbfm_partner`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_partner` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `partner` varchar(100) NOT NULL,
@@ -140,7 +144,7 @@ CREATE TABLE `bbfm_partner` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `partner` (`partner`),
   KEY `partner_key` (`partner_key`)
-) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -149,7 +153,7 @@ CREATE TABLE `bbfm_partner` (
 
 DROP TABLE IF EXISTS `bbfm_payment_duplicate`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_payment_duplicate` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `creation` datetime NOT NULL,
@@ -158,7 +162,7 @@ CREATE TABLE `bbfm_payment_duplicate` (
   `bbfm_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unit` (`unit`)
-) ENGINE=MyISAM AUTO_INCREMENT=44 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,7 +171,7 @@ CREATE TABLE `bbfm_payment_duplicate` (
 
 DROP TABLE IF EXISTS `bbfm_unknown_receiving_address`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_unknown_receiving_address` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `address` char(32) NOT NULL,
@@ -175,7 +179,7 @@ CREATE TABLE `bbfm_unknown_receiving_address` (
   `unit` char(44) NOT NULL,
   `amount` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4654 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=4654 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -184,14 +188,14 @@ CREATE TABLE `bbfm_unknown_receiving_address` (
 
 DROP TABLE IF EXISTS `bbfm_unknown_sent_unit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bbfm_unknown_sent_unit` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `creation` datetime NOT NULL,
   `unit` char(44) NOT NULL,
   `amount` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
