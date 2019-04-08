@@ -1,6 +1,8 @@
 <?php
-use Datto\JsonRpc\Http\Client;
-use Datto\JsonRpc\Response;
+use Datto\JsonRpc\Http\Client as JsonRpcClient;
+use Datto\JsonRpc\Response as JsonRpcResponse;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 function get_input( $input_var_name, $is_mandatory = false , $regex_pattern = false, $check_fonction = false, $default = '' ){
 
@@ -66,8 +68,8 @@ function get_input( $input_var_name, $is_mandatory = false , $regex_pattern = fa
 }
 
 function check_email( $email ){
-//     error_log("email : " . $email );
-//     return filter_var($email, FILTER_VALIDATE_EMAIL);
+    // error_log("email : " . $email );
+    // return filter_var($email, FILTER_VALIDATE_EMAIL);
     /*
      * copied from wordpress is_email() function
      */
@@ -77,7 +79,7 @@ function check_email( $email ){
     if ( strpos( $email, '@', 1 ) === false ) return false;
     // Split out the local and domain parts
 	list( $local, $domain ) = explode( '@', $email, 2 );
-// 	error_log("local : " . $local );
+	// error_log("local : " . $local );
 	// LOCAL PART
 	// Test for invalid characters
 	if ( !preg_match( '/^[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) ) {
@@ -228,7 +230,7 @@ function fee_bbfm( $amount ){
 }
 
 function getnewaddressFromWallet(){
-	$client = new Client('http://127.0.0.1:6332');
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
 	$client->query(1, 'getnewaddress', []);
     return jsonrpc_call( $client );
 }
@@ -244,7 +246,7 @@ function jsonrpc_call( $client ){
 
 function jsonrpc_success($responses) {
 	/**
-	 * @var Response[] $responses
+	 * @var JsonRpcResponse[] $responses
 	 */
 	foreach ($responses as $response) {
 		$id = $response->getId();
@@ -261,5 +263,48 @@ function jsonrpc_success($responses) {
 		else {
 			return $response->getResult();
 		}
+	}
+}
+
+
+function my_sendmail( $MailBody, $MailSubject, $ToMail ){
+	echo "\nmy_sendmail( $MailSubject, $ToMail ) \n";
+
+	// Instantiation and passing `true` enables exceptions
+	$mail = new PHPMailer(true);
+
+	try {
+		//Server settings
+		//$mail->SMTPDebug = 2;
+		if (getenv('MAILER_MODE') === 'smtp') {
+			$mail->isSMTP();                                   // Set mailer to use SMTP
+			$mail->Host         = getenv('MAILER_HOST');       // Specify main and backup SMTP servers
+			if (getenv('MAILER_USERNAME') && getenv('MAILER_PASSWORD')) {
+				$mail->SMTPAuth = true;                        // Enable SMTP authentication
+				$mail->Username = getenv('MAILER_USERNAME');   // SMTP username
+				$mail->Password = getenv('MAILER_PASSWORD');   // SMTP password
+			}
+			$mail->SMTPSecure   = getenv('MAILER_ENCRYPTION'); // Enable TLS encryption, `ssl` also accepted
+			$mail->Port         = getenv('MAILER_PORT');       // TCP port to connect to
+		}
+
+		//Recipients
+		$mail->setFrom('bbfm@obyte.org', 'Obyte for Merchants');
+		$mail->addAddress($ToMail);
+		$mail->addReplyTo('tarmo888@gmail.com', 'Obyte for Merchants');
+
+		// Content
+		$mail->isHTML(false);
+		$mail->Subject = $MailSubject;
+		$mail->Body    = $MailBody;
+		//$mail->AltBody = '';
+
+		if (getenv('MAILER_MODE')) {
+			$mail->send();
+			return true;
+		}
+	}
+	catch (PHPMailerException $e) {
+		echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 	}
 }

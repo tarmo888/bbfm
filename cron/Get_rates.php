@@ -6,6 +6,7 @@
 //In case of an error sends an email to ENV.ADMIN_EMAIL.
 
 include_once __DIR__ .'/../bbfm_xfiles/bbfm_conf.php';
+include_once __DIR__ . "/../bbfm_xfiles/bbfm_function.php";
 include_once __DIR__ .'/../bbfm_xfiles/mysqli_connect.php';
 
 $percentmax = (int)getenv('PERCENTAGE_MAX'); //max change allowed (in percent) in between two consrcutives values for GBYTE
@@ -23,11 +24,9 @@ if ( $q && $q->num_rows ) {
 	$old_value = $rep[ 'BTC_rate' ];
 }
 
-if(empty($json_array["error"])){
+if(empty($json_array["error"]) && !empty($json_array[0]['price_btc'])){
 	$GBYTE_BTC_value = $json_array['0']['price_btc'];
-
 	$percentChange = $old_value ? ($GBYTE_BTC_value - $old_value) / $old_value * 100 : 0;
-
 	//echo $percentChange;
 
 	if(abs($percentChange) < $percentmax){
@@ -39,16 +38,23 @@ if(empty($json_array["error"])){
 		}
 	}
 	else {
-		$subject = 'ERROR! BBFM BYTES/BTC exchange rate bad!';
-		$message = 'Got new BTC value='.$GBYTE_BTC_value.' old BTC_value='.$old_value.' This is more than my '.$percentmax.'% limit!';
-		$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
-		'X-Mailer: PHP/' . phpversion();
+		$MailSubject = 'GBYTE/BTC exchange rate error!';
+		$MailBody = 'Got new BTC value='.$GBYTE_BTC_value.' old BTC_value='.$old_value.' This is more than my '.$percentmax.'% limit!';
+		$ToMail  = getenv('ADMIN_EMAIL');
 
-		$to      = getenv('ADMIN_EMAIL');
-		if ($to) {
-			mail($to, $subject, $message, $headers);
+		if ($ToMail) {
+			my_sendmail( $MailBody, $MailSubject, $ToMail );
 		}
+	}
+}
+else {
+	$MailSubject = 'Error fetching currencies for GBYTE from CMC';
+	$MailBody = "https://api.coinmarketcap.com/v1/ticker/obyte/\n";
+	$MailBody .= 'Curl error_code is:'. (empty($json_array["error_code"]) ? 'X' : $json_array["error_code"]);
+	$ToMail  = getenv('ADMIN_EMAIL');
+
+	if ($ToMail) {
+		my_sendmail( $MailBody, $MailSubject, $ToMail );
 	}
 }
 
@@ -147,21 +153,20 @@ if(empty($json_array["error"])){
 	$q = mysqli_query($mysqli, $query);
 }
 else {
-	$subject = 'Error fetching currencies from https://blockchain.info/fr/ticker';
-	$message = 'Curl error_code is:'. $json_array["error_code"];
-	$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
-		'X-Mailer: PHP/' . phpversion();
-	$to      = getenv('ADMIN_EMAIL');
-	if ($to) {
-		mail($to, $subject, $message, $headers);
+	$MailSubject = 'Error fetching currencies from blockchain.info';
+	$MailBody = "https://blockchain.info/fr/ticker\n";
+	$MailBody .= 'Curl error_code is:'. $json_array["error_code"];
+	$ToMail  = getenv('ADMIN_EMAIL');
+
+	if ($ToMail) {
+		my_sendmail( $MailBody, $MailSubject, $ToMail );
 	}
 }
 
 // except for CZK
 $rate_url="https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK";
 $json_array= json_decode(make_443_get ($rate_url), true);
-if(empty($json_array["error"])){
+if(empty($json_array["error"]) && !empty($json_array[0]['price_czk'])){
 	//var_dump($json_array);
 	$CZK_BTC_value=1/$json_array[0]['price_czk'];
 	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CZK_BTC_value, 'CZK', $CZK_BTC_value);
@@ -169,15 +174,13 @@ if(empty($json_array["error"])){
 	//echo $CZK_BTC_value;
 }
 else {
-	$subject = 'Error fetching currencies from https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK';
-	$message = 'Curl error_code is:'. $json_array["error_code"];
-	$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
-		'X-Mailer: PHP/' . phpversion();
+	$MailSubject = 'Error fetching currencies for CZK from CMC';
+	$MailBody = "https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK\n";
+	$MailBody .= 'Curl error_code is:'. (empty($json_array["error_code"]) ? 'X' : $json_array["error_code"]);
+	$ToMail  = getenv('ADMIN_EMAIL');
 
-	$to      = getenv('ADMIN_EMAIL');
-	if ($to) {
-		mail($to, $subject, $message, $headers);
+	if ($ToMail) {
+		my_sendmail( $MailBody, $MailSubject, $ToMail );
 	}
 }
 

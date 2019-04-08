@@ -5,6 +5,7 @@
 		"ext-curl": "*",
 		"ext-mbstring": "*",
 		"vlucas/phpdotenv": "^3.3",
-		"datto/json-rpc-http": "^4.0"
+		"datto/json-rpc-http": "^4.0",
+		"phpmailer/phpmailer": "^6.0"
 	}
 }

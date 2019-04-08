@@ -1,6 +1,5 @@
 <?php
-use Datto\JsonRpc\Http\Client;
-use Datto\JsonRpc\Response;
+use Datto\JsonRpc\Http\Client as JsonRpcClient;
 
 // /usr/bin/php /var/www/bbfm_xfiles/bbfm_payer.php
 // Should be trigered from cron each minute.
@@ -52,7 +51,7 @@ $error_log = '';
 */
 $max_unhandled = 500;
 // $max_unhandled = 9999;
-$client = new Client('http://127.0.0.1:6332');
+$client = new JsonRpcClient('http://127.0.0.1:6332');
 $client->query(1, 'getinfo', []);
 $Object = jsonrpc_call( $client );
 echo print_r( $Object, true );
@@ -190,9 +189,9 @@ Best Regards.
 The Obyte For Merchants Team
 obyte-for-merchants.com
 ";
-						$MailSujet = "Obyte duplicate payment notification";
+						$MailSubject = "Obyte duplicate payment notification";
 						$ToMail = $row[ 'email_notif' ];
-						my_sendmail( $MailBody, $MailSujet, $ToMail );
+						my_sendmail( $MailBody, $MailSubject, $ToMail );
 					}
 				}
 
@@ -313,7 +312,7 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	/*
 	* send Gbytes !
 	*/
-	$client = new Client('http://127.0.0.1:6332');
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
 	$client->query(1, 'sendtoaddress', [$row[ 'address_merchant' ], $sent_amount]);
 	echo "\nshell_string : sendtoaddress " . $row[ 'address_merchant' ] .' '. $sent_amount;
 	$sendtoaddress = jsonrpc_call( $client );
@@ -526,7 +525,7 @@ echo "\ndone in " . $exec_time . " sec.\n";
  */
 
 function email_notif_url_notification_error( $row, $url_notify ){
-	$MailSujet ='*** Error on your Obyte payment url notification for your sale ' . $row[ 'merchant_order_UID' ] . ' ***';
+	$MailSubject ='*** Error on your Obyte payment url notification for your sale ' . $row[ 'merchant_order_UID' ] . ' ***';
 	$MailBody = "An error was encountered while trying to notify your Obyte payment to your 'merchant_return_url'.
 
 mode: $row[mode]
@@ -540,7 +539,7 @@ error message: $url_notify[error_message]";
 sha256_digest: " . build_checkhash( $row );
 
 	$ToMail = $row[ 'email_notif' ];
-	my_sendmail( $MailBody, $MailSujet, $ToMail );
+	my_sendmail( $MailBody, $MailSubject, $ToMail );
 }
 
 function email_notify( $row ){
@@ -554,7 +553,7 @@ function email_notify( $row ){
 	*/
 	if( $row[ 'global_status' ] == 'error' ){
 		$mail_notif_result = 'nok';
-		$MailSujet ='*** Error on your Obyte payment for your sale ' . $row[ 'merchant_order_UID' ] . ' ***';
+		$MailSubject ='*** Error on your Obyte payment for your sale ' . $row[ 'merchant_order_UID' ] . ' ***';
 		$MailBody = "An error was encountered while processing your Obyte payment.
 error_msg: " . $row[ 'error_msg' ] ."
 ";
@@ -565,7 +564,7 @@ error_msg: " . $row[ 'error_msg' ] ."
 	}
 	else if( $row[ 'global_status' ] == 'completed' ){
 		$mail_notif_result = 'ok';
-		$MailSujet ='[confirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
+		$MailSubject ='[confirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
 		$MailBody = "Hello,
 The payment for the above mentioned order is now confirmed by the network.";
 
@@ -575,7 +574,7 @@ The payment for the above mentioned order is now confirmed by the network.";
 	}
 	else if( $row[ 'global_status' ] == 'sent' ){
 		$mail_notif_result = 'unconfirmed';
-		$MailSujet ='[unconfirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
+		$MailSubject ='[unconfirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
 		$MailBody = "Hello,
 You just received from us a Obyte payment for the above mentioned order! Confirmation is still required from the network.";
 
@@ -626,7 +625,7 @@ obyte-for-merchants.com
 	* send mail
 	*/
 
-	if( my_sendmail( $MailBody, $MailSujet, $ToMail ) ){
+	if( my_sendmail( $MailBody, $MailSubject, $ToMail ) ){
 		return 'ok';
 	}
 	else{
@@ -733,34 +732,6 @@ function url_notify( $row ){
 	return $process_curl_request;
 }
 
-function my_sendmail( $MailBody, $MailSujet, $ToMail ){
-	echo "\nmy_sendmail( $MailSujet, $ToMail ) \n";
-	$from_email = 'noreply@obyte-for-merchants.com';
-	$entetedate  = date("D, d M Y H:i:s O");
-	$entetemail  = "From: $from_email \n";
-	$entetemail .= "Cc:\n";
-	$entetemail .= "Bcc: \n";
-	$entetemail .= "Reply-To: $from_email \n";
-	$entetemail .="MIME-Version: 1.0\n";
-	$entetemail .="Content-Type: text/plain; charset=\"iso-8859-1\"; format=\"flowed\"\n";
-	$entetemail .="Content-Transfer-Encoding: 8bit\n";
-	$entetemail .= "X-Mailer: obyte-for-merchants.com\n" ;
-	$entetemail .= "Date: $entetedate";
-	$cleanSujet = utf8_encode($MailSujet);
-	if ( mail(
-		$ToMail,
-		$cleanSujet,
-		$MailBody,
-		$entetemail
-	) ){
-		return true;
-	}
-	else{
-		return false;
-	}
-
-}
-
 function set_to_test_mode( $row ){
 	$row[ 'receive_unit' ] = 'test_mode_receive_unit';
 	$row[ 'received_amount' ] = $row[ 'amount_BB_asked' ];
@@ -770,7 +741,7 @@ function set_to_test_mode( $row ){
 }
 
 function listtransactions(){
-	$client = new Client('http://127.0.0.1:6332');
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
 	$client->query(1, 'listtransactions', []);
 	$Object = jsonrpc_call( $client );
     // echo print_r( $Object, true );
@@ -781,10 +752,10 @@ function cron_return_error( $msg, $notif_mail = false ){
 	echo "\n" . date("Y-m-d H:i:s") . " : BBFM : " .$msg;
 	if( $notif_mail ){
 		$MailBody = $msg;
-		$MailSujet = "BBFM cron error";
+		$MailSubject = "BBFM cron error";
 		$ToMail = getenv('ADMIN_EMAIL');
 		if ($ToMail) {
-			my_sendmail( $MailBody, $MailSujet, $ToMail );
+			my_sendmail( $MailBody, $MailSubject, $ToMail );
 		}
 	}
 }
