@@ -188,7 +188,7 @@ Please contact us via our Discord for further information :
 https://obyte.org/discord
 Best Regards.
 The Obyte For Merchants Team
-@byteball-for-merchants.com
+obyte-for-merchants.com
 ";
 						$MailSujet = "Obyte duplicate payment notification";
 						$ToMail = $row[ 'email_notif' ];
@@ -617,7 +617,7 @@ sha256_digest: " . build_checkhash( $row ) ."
 ***
 Best Regards.
 The Obyte For Merchants Team
-@byteball-for-merchants.com
+obyte-for-merchants.com
 		";
 
 	$ToMail = $row[ 'email_notif' ];
@@ -735,7 +735,7 @@ function url_notify( $row ){
 
 function my_sendmail( $MailBody, $MailSujet, $ToMail ){
 	echo "\nmy_sendmail( $MailSujet, $ToMail ) \n";
-	$from_email = 'noreply@byteball-for-merchants.com';
+	$from_email = 'noreply@obyte-for-merchants.com';
 	$entetedate  = date("D, d M Y H:i:s O");
 	$entetemail  = "From: $from_email \n";
 	$entetemail .= "Cc:\n";
@@ -744,7 +744,7 @@ function my_sendmail( $MailBody, $MailSujet, $ToMail ){
 	$entetemail .="MIME-Version: 1.0\n";
 	$entetemail .="Content-Type: text/plain; charset=\"iso-8859-1\"; format=\"flowed\"\n";
 	$entetemail .="Content-Transfer-Encoding: 8bit\n";
-	$entetemail .= "X-Mailer: byteball-for-merchants.com\n" ;
+	$entetemail .= "X-Mailer: obyte-for-merchants.com\n" ;
 	$entetemail .= "Date: $entetedate";
 	$cleanSujet = utf8_encode($MailSujet);
 	if ( mail(

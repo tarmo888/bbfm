@@ -41,8 +41,8 @@ if(empty($json_array["error"])){
 	else {
 		$subject = 'ERROR! BBFM BYTES/BTC exchange rate bad!';
 		$message = 'Got new BTC value='.$GBYTE_BTC_value.' old BTC_value='.$old_value.' This is more than my '.$percentmax.'% limit!';
-		$headers = 'From: noreply@byteball-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@byteball-for-merchants.com' . "\r\n" .
+		$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
+		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
 		'X-Mailer: PHP/' . phpversion();
 
 		$to      = getenv('ADMIN_EMAIL');
@@ -149,8 +149,8 @@ if(empty($json_array["error"])){
 else {
 	$subject = 'Error fetching currencies from https://blockchain.info/fr/ticker';
 	$message = 'Curl error_code is:'. $json_array["error_code"];
-	$headers = 'From: noreply@byteball-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@byteball-for-merchants.com' . "\r\n" .
+	$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
+		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
 		'X-Mailer: PHP/' . phpversion();
 	$to      = getenv('ADMIN_EMAIL');
 	if ($to) {
@@ -171,8 +171,8 @@ if(empty($json_array["error"])){
 else {
 	$subject = 'Error fetching currencies from https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK';
 	$message = 'Curl error_code is:'. $json_array["error_code"];
-	$headers = 'From: noreply@byteball-for-merchants.com' . "\r\n" .
-		'Reply-To: noreply@byteball-for-merchants.com' . "\r\n" .
+	$headers = 'From: noreply@obyte-for-merchants.com' . "\r\n" .
+		'Reply-To: noreply@obyte-for-merchants.com' . "\r\n" .
 		'X-Mailer: PHP/' . phpversion();
 
 	$to      = getenv('ADMIN_EMAIL');
