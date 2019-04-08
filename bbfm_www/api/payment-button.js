@@ -1,13 +1,14 @@
 
+var BBFM_Host = 'https://obyte-for-merchants.com';
 var ss = document.createElement("link");
 ss.type = "text/css";
 ss.rel = "stylesheet";
-ss.href = "/api/payment-button.css";
+ss.href = BBFM_Host + "/api/payment-button.css";
 document.getElementsByTagName("head")[0].appendChild(ss);
 var BBFM_return = new Object();
 
 window.onload=function(){
-	document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_button"><input type="image" src="/api/img/pay-with-bytes.png" alt="Pay with Bytes" title="Pay with Bytes" width="200px"/></div>';
+	document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_button"><input type="image" src="' + BBFM_Host + '/api/img/pay-with-bytes.png" alt="Pay with Bytes" title="Pay with Bytes" width="200px"/></div>';
 	document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_test_notif"></div>';
 	document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_error"></div>';
 	// document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_payment_link"></div>';
@@ -21,13 +22,13 @@ window.onload=function(){
 		bbfm_params['display_powered_by'] = 1;
 	}
 	if( bbfm_params['display_powered_by'] == 1 ){
-		document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_button_footer"><a href="/" title="Pay with Obyte" target="_blank">Powered by Obyte</div>';
+		document.getElementById("bbfm_container").innerHTML += '<div id="bbfm_button_footer"><a href="' + BBFM_Host + '" title="Pay with Obyte" target="_blank">Powered by Obyte</div>';
 	}
 	bbfm_askPayment();
 };
 
 function bbfm_askPayment(){
-	var data_file = '/api/ask_payment.php?';
+	var data_file = BBFM_Host + '/api/ask_payment.php?';
 	for(var key in bbfm_params) {
 		// console.log(key + ' : '  + bbfm_params[key]);
 		data_file += '&' + key + '=' + encodeURIComponent(bbfm_params[key]);
