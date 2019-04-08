@@ -17,7 +17,7 @@ $XFILE_PATH = __DIR__ ."/../bbfm_xfiles/";
 $ps_aux = shell_exec( 'ps aux' );
 // die($ps_aux);
 $postpone_count_alert_level = 10; // will send warning email to admin if cron has been postponed more than times
-$cron_postpone_counter_url = $XFILE_PATH . 'cron_postpone_counter.txt';
+$cron_postpone_counter_url = __DIR__ .'/../log/cron_postpone_counter.txt';
 $running_nb = preg_match_all ( '@bbfm_payer.php@', $ps_aux );
 if( $running_nb > 2 ){
 	//echo $ps_aux;

@@ -1,0 +1,29 @@
+<html>
+<head>
+	<meta content = "text/html; charset = ISO-8859-1" http-equiv = "content-type">
+	<!-- ByteBall payment button script-->
+	<script type = "application/javascript"> 
+	// payment parameters  
+	var bbfm_params = {
+		order_UID: '123456',
+		//merchant_return_url: 'https://your_own_domain/api/callback_test.php',
+		mode_notif: 'post',
+		currency: 'USD',
+		//merchant_email: 'test@example.com',
+		amount: 12.43,
+		byteball_merchant_address: 'NTYO4ZKPRBPXW6WY2QUMJBPNDLOGX5OJ',
+		merchant_id: 'test_merchant',
+		mode: 'test',
+		attach: 'Hi there'
+	};
+	// end of payment parameters    
+	</script>
+	<script src="https://obyte-for-merchants.com/api/payment-button.js"></script> 
+	<!-- End of ByteBall payment button script-->
+	<title>Example html file</title>
+</head>
+<body>
+	<!-- ByteBall payment button -->
+	<div id="bbfm_container"></div>
+</body>
+</html>
