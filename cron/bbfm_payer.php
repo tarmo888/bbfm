@@ -693,7 +693,7 @@ function url_notify( $row ){
 	}
 
 	// add allowed_notif_IPs for woocommerce (to be completed with new server IP before any server migration)
-	if( $is_woocommerce ){
+	if( $is_woocommerce && getenv('ALLOWED_NOTIF_IPS') ){
 		$data[ 'allowed_notif_IPs' ] = array(
 			getenv('ALLOWED_NOTIF_IPS'),// our IP
 		);
