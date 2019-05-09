@@ -189,6 +189,9 @@ if( ! $q ){
 */
 if( mysqli_num_rows( $q ) > 0 ){
     $row = $q->fetch_array(MYSQLI_ASSOC);
+
+    $BBaddress = $row [ 'address_bbfm' ];
+    $amount_BB_asked = $row [ 'amount_BB_asked' ];
     $hide_powered_by = set_hide_powered_by( $row['display_powered_by'], $is_woocommerce );
 
     /*
@@ -197,6 +200,8 @@ if( mysqli_num_rows( $q ) > 0 ){
     if( $row [ 'global_status' ] == 'completed' ){
         $return = array(
             'result' => 'completed',
+            'BBaddress' => $BBaddress,
+            'amount_BB_asked' => $amount_BB_asked,
             'hide_powered_by' => $hide_powered_by,
             'qrcode' => $qrcode,
         );
@@ -216,17 +221,14 @@ if( mysqli_num_rows( $q ) > 0 ){
     if( $row [ 'receive_unit' ] ){
         $return = array(
             'result' => 'processing',
+            'BBaddress' => $BBaddress,
+            'amount_BB_asked' => $amount_BB_asked,
             'hide_powered_by' => $hide_powered_by,
             'qrcode' => $qrcode,
         );
         die( json_encode($return) );
     }
 
-    /*
-     * normal pending order
-     */
-    $BBaddress = $row [ 'address_bbfm' ];
-    $amount_BB_asked = $row [ 'amount_BB_asked' ];
      /*
       * return payment infos
       */

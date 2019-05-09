@@ -111,9 +111,9 @@ foreach( $transactions as $transaction ){
 
 		$query = "select * from bbfm";
 		$query .= " where address_bbfm = '" . $transaction['my_address'] . "'";
-//         echo "\nquery : $query";
+        // echo "\nquery : $query";
 		$q = mysqli_query($mysqli, $query);
-//         echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+        // echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
 		if( ! $q ){
 			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
 			continue;
@@ -145,7 +145,7 @@ foreach( $transactions as $transaction ){
 			$query .= ", receive_unit_confirmed = '" . $transaction['confirmations'] . "'";
 			$query .= ", received_amount  = '" . $transaction['amount'] . "'";
 			$query .= " where id = '" . $row[ 'id' ] . "'";
-//             echo "\nquery : $query";
+            // echo "\nquery : $query";
 			$q_receive = mysqli_query($mysqli, $query);
 			if( ! $q_receive ){
 				cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
@@ -217,30 +217,29 @@ obyte-for-merchants.com
 	if( $transaction['action'] == 'sent' ){
 		$query = "select * from bbfm";
 		$query .= " where sent_unit = '" . $transaction['unit'] . "'";
-//         $query .= " and global_status = 'sent' ";
-//         echo "\nquery : $query";
+        // $query .= " and global_status = 'sent' ";
+        // echo "\nquery : $query";
 		$q = mysqli_query($mysqli, $query);
-//         echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+        // echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
 		if( ! $q ){
 			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
 			break;
 		}
 		if( mysqli_num_rows( $q ) == 0 ){
-//             cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database", true  );
-//             continue;
+			// cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database", true  );
+			// continue;
 
-				/*
-				* check in table bbfm_unknown_sent_unit
-				*/
-				$query_select = "select * from bbfm_unknown_sent_unit where unit = '" . $transaction['unit'] . "' ";
-				$q_select = mysqli_query($mysqli, $query_select);
-				if( mysqli_num_rows( $q_select ) == 0 ){
-					cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database  -> bbfm will register the unit in table bbfm_unknown_sent_unit.", true  );
+			/*
+			* check in table bbfm_unknown_sent_unit
+			*/
+			$query_select = "select * from bbfm_unknown_sent_unit where unit = '" . $transaction['unit'] . "' ";
+			$q_select = mysqli_query($mysqli, $query_select);
+			if( mysqli_num_rows( $q_select ) == 0 ){
+				cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database  -> bbfm will register the unit in table bbfm_unknown_sent_unit.", true  );
 
-					mysqli_query($mysqli, "insert into bbfm_unknown_sent_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
-				}
-				continue;
-
+				mysqli_query($mysqli, "insert into bbfm_unknown_sent_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
+			}
+			continue;
 		}
 		$row = $q->fetch_array(MYSQLI_ASSOC);
 
@@ -405,9 +404,9 @@ $query .= " ( receiving_url_notified is NULL and receive_unit is not NULL )";
 $query .= " or ";
 // intermediate notification
 $query .= " ( global_status = 'sent' and ( sent_url_notified is NULL or sent_email_notified is NULL ) )";
-//         echo "\nquery : $query";
+// echo "\nquery : $query";
 $q = mysqli_query($mysqli, $query);
-//         echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+// echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
 if( ! $q ){
 	cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
 	exit;
@@ -430,7 +429,7 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 		// register result in database
 		$query = "update bbfm set receiving_url_notified = '" . $url_notify[ 'result' ] . "'";
 		$query .= " where id = '" . $row[ 'id' ] . "'";
-//         error_log("\n" . 'query: ' . $query);
+        // error_log("\n" . 'query: ' . $query);
 		mysqli_query($mysqli, $query);
 
 	}
@@ -675,16 +674,16 @@ function url_notify( $row ){
 	}
 	$data[ 'amount_asked_in_B' ] = $row[ 'amount_BB_asked' ];
 
-//     if ( $row[ 'receive_unit' ] ){
+	// if ( $row[ 'receive_unit' ] ){
 		$data[ 'receive_unit' ] = $row[ 'receive_unit' ];
-//     }
+	// }
 	$data[ 'received_amount' ] = $row[ 'received_amount' ];
 
-//     if ( $row[ 'sent_unit' ] ){
+	// if ( $row[ 'sent_unit' ] ){
 		$data[ 'fee' ] = $row[ 'fee_bbfm' ];
 		$data[ 'amount_sent' ] = $row[ 'sent_amount' ];
 		$data[ 'unit' ] = $row[ 'sent_unit' ];
-//     }
+	// }
 
 	// add data for woocommerce and bballs
 	if( $is_woocommerce || $is_bballs){
@@ -708,7 +707,7 @@ function url_notify( $row ){
 	else if( $row[ 'global_status' ] == 'error' ){
 		$data[ 'result' ] = 'nok';
 		$data[ 'error_msg' ] = $row[ 'error_msg' ];
-//     }else if( ! $row[ 'receiving_url_notified' ] and $row[ 'receive_unit' ] ){
+	// }else if( ! $row[ 'receiving_url_notified' ] and $row[ 'receive_unit' ] ){
 	}
 	else if( $row[ 'receive_unit' ] ){
 		// woobytes and bballs have a special notif name, for historical reasons...
@@ -744,7 +743,7 @@ function listtransactions(){
 	$client = new JsonRpcClient('http://127.0.0.1:6332');
 	$client->query(1, 'listtransactions', []);
 	$Object = jsonrpc_call( $client );
-    // echo print_r( $Object, true );
+	// echo print_r( $Object, true );
 	return $Object;
 }
 

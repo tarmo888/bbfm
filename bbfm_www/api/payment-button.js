@@ -41,35 +41,35 @@ function bbfm_askPayment(){
 	}
 
 	try{
-	// Opera 8.0+, Firefox, Chrome, Safari
-	http_request = new XMLHttpRequest();
+		// Opera 8.0+, Firefox, Chrome, Safari
+		http_request = new XMLHttpRequest();
 	}catch (e){
-	// Internet Explorer Browsers
-	try{
-		http_request = new ActiveXObject("Msxml2.XMLHTTP");
-	}catch (e) {
+		// Internet Explorer Browsers
 		try{
-			http_request = new ActiveXObject("Microsoft.XMLHTTP");
-		}catch (e){
-			// Something went wrong
-			alert("Your browser broke!");
-			return false;
+			http_request = new ActiveXObject("Msxml2.XMLHTTP");
+		}catch (e) {
+			try{
+				http_request = new ActiveXObject("Microsoft.XMLHTTP");
+			}catch (e){
+				// Something went wrong
+				alert("Your browser broke!");
+				return false;
+			}
 		}
 	}
-	}
 	http_request.onreadystatechange = function(){
-	if (http_request.readyState == 4  ){
-		// Javascript function JSON.parse to parse JSON data
-		try {
-			jsonObj = JSON.parse( http_request.responseText );
+		if (http_request.readyState == 4  ){
+			// Javascript function JSON.parse to parse JSON data
+			try {
+				jsonObj = JSON.parse( http_request.responseText );
 			} catch (e) {
-			bbfm_return_error("Error returned while trying to parse result : " + e);
-			return;
+				bbfm_return_error("Error returned while trying to parse result : " + e);
+				return;
 			}
 			BBFM_return = jsonObj;
 			// console.log( BBFM_return );
 			if( ! BBFM_return.qrcode ){
-				BBFM_return.qrcode = 'https://chart.googleapis.com/chart?chs=170x170&cht=qr&chl={text}&chld=H';
+				BBFM_return.qrcode = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl={text}&chld=H';
 			}
 
 			if( jsonObj.result == 'nok' ){
@@ -85,25 +85,24 @@ function bbfm_askPayment(){
 				// auto-refresh
 				setTimeout(bbfm_askPayment, 5000  );
 			}
-
-	}
+		}
 	}
 	http_request.open("GET", data_file, true);
 	http_request.send();
 }
 
 function bbfm_return_processing(){
-	// document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="https://chart.googleapis.com/chart?chs=170x170&cht=qr&chl=processing received payment&chld=H" >';
-	document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="' + bbfm_qrcode( 'processing received payment' ) + '" >';
+	// document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=processing received payment&chld=H" >';
+	document.getElementById("bbfm_payment_qrcode").innerHTML = '';
 	document.getElementById("bbfm_processing").classList.add('bbfm_processing');
 	document.getElementById("bbfm_processing").innerHTML = 'Processing received payment...';
 }
 
 function bbfm_return_completed(){
-	// document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="https://chart.googleapis.com/chart?chs=170x170&cht=qr&chl=this order has already been paid !&chld=H" >';
+	// document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=this order has already been paid !&chld=H" >';
 	document.getElementById("bbfm_processing").innerHTML = '';
 	document.getElementById("bbfm_processing").classList.remove('bbfm_processing');
-	document.getElementById("bbfm_payment_qrcode").innerHTML = '<img src="' + bbfm_qrcode( 'this order has already been paid !' ) + '" >';
+	document.getElementById("bbfm_payment_qrcode").innerHTML = '';
 	document.getElementById("bbfm_completed").classList.add('bbfm_completed');
 	document.getElementById("bbfm_completed").innerHTML = 'Payment received !';
 }
@@ -123,13 +122,13 @@ function bbfm_display_payment_link(){
 	var innerButton =  document.getElementById("bbfm_button").innerHTML;
 	if( bbfm_params['mode'] == 'live' ){
 		document.getElementById("bbfm_button").innerHTML = '<a href="' + payment_url + '">' + innerButton + '</a>';
-		//  document.getElementById("bbfm_payment_qrcode").innerHTML = '<a href="' + payment_url + '">' + '<img src="https://chart.googleapis.com/chart?chs=170x170&cht=qr&chl=' + payment_url + '&chld=H" >' + '</a>';
+		//  document.getElementById("bbfm_payment_qrcode").innerHTML = '<a href="' + payment_url + '">' + '<img src="https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + payment_url + '&chld=H" >' + '</a>';
 		//  document.getElementById("bbfm_payment_qrcode").innerHTML = '<a href="' + payment_url + '">' + '<img src="' + qrcode.replace( '{text}', payment_url ) + '" >' + '</a>';
 		document.getElementById("bbfm_payment_qrcode").innerHTML = '<a href="' + payment_url + '">' + '<img src="' + bbfm_qrcode( payment_url ) + '" >' + '</a>';
 	}
 	else{
 		document.getElementById("bbfm_button").innerHTML = "<a href=\"javascript:alert('You are now in *test* mode.\\n\\nWait a minute to receive test payment auto-notification');\">" + innerButton + '</a>';
-		//  document.getElementById("bbfm_payment_qrcode").innerHTML = "<a href=\"javascript:alert('You are now in *test* mode.\\n\\nWait a minute to receive test payment auto-notification');\">" + '<img src="https://chart.googleapis.com/chart?chs=170x170&cht=qr&chl=you are now on test mode&chld=H" >' + '</a>';
+		//  document.getElementById("bbfm_payment_qrcode").innerHTML = "<a href=\"javascript:alert('You are now in *test* mode.\\n\\nWait a minute to receive test payment auto-notification');\">" + '<img src="https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=you are now on test mode&chld=H" >' + '</a>';
 		document.getElementById("bbfm_payment_qrcode").innerHTML = "<a href=\"javascript:alert('You are now in *test* mode.\\n\\nWait a minute to receive test payment auto-notification');\">" + '<img src="' + bbfm_qrcode( 'you are now on test mode' ) + '" >' + '</a>';
 	}
 

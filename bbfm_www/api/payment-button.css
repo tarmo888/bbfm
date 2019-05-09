@@ -1,5 +1,5 @@
 #bbfm_container{
-    width: 200px;
+    width: 210px;
     text-align: center;
     border: 1px solid;
     margin-right: auto;
@@ -10,6 +10,7 @@
 }
 
 #bbfm_payment_qrcode{
+    
 }
 
 #bbfm_payment_qrcode img{
