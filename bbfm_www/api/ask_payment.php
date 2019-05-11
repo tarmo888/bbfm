@@ -328,12 +328,12 @@ $bbfm_id = mysqli_insert_id ( $mysqli );
   * set unique payment address
   */
 if( $mode == 'live' ){
-    $BBaddress = getnewaddressFromWallet();
+    $BBaddress = getNewAddressFromWallet();
 }else{
     $BBaddress = 'NO-SENDING-ADDRESS-ON-TEST-MODE';
 }
 if( ! check_BB_address( $BBaddress ) and $mode == 'live' ){
-    return_error( 'Error on generating payment address. Please contact support.' );
+    return_error( 'Error on generating payment address. Please contact support if this problem persists.' );
 }
 
 $debug_msg .=  "<br>" . "BBaddress : " . $BBaddress;

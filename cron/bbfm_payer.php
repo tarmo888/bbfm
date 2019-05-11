@@ -1,6 +1,4 @@
 <?php
-use Datto\JsonRpc\Http\Client as JsonRpcClient;
-
 // /usr/bin/php /var/www/bbfm_xfiles/bbfm_payer.php
 // Should be trigered from cron each minute.
 // Watches for incoming transactions and send payment (or error notifications), minus fees, to merchant.
@@ -51,9 +49,7 @@ $error_log = '';
 */
 $max_unhandled = 500;
 // $max_unhandled = 9999;
-$client = new JsonRpcClient('http://127.0.0.1:6332');
-$client->query(1, 'getinfo', []);
-$Object = jsonrpc_call( $client );
+$Object = getNodeInfo();
 echo print_r( $Object, true );
 $count_unhandled = $Object['count_unhandled'];
 echo "\ncount_unhandled: $count_unhandled\n";
@@ -68,7 +64,7 @@ if ( $count_unhandled >= $max_unhandled ){
 /*
 * get list of all wallet transactions
 */
-$transactions = listtransactions();
+$transactions = listTransactions();
 $transactions = $transactions ? $transactions : [];
 // echo print_r( $transactions, true );
 
@@ -311,11 +307,8 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	/*
 	* send Gbytes !
 	*/
-	$client = new JsonRpcClient('http://127.0.0.1:6332');
-	$client->query(1, 'sendtoaddress', [$row[ 'address_merchant' ], $sent_amount]);
-	echo "\nshell_string : sendtoaddress " . $row[ 'address_merchant' ] .' '. $sent_amount;
-	$sendtoaddress = jsonrpc_call( $client );
-	echo "\n" . print_r( $sendtoaddress );
+	$sendtoaddress = sendToAdress($row[ 'address_merchant'] , $sent_amount);
+	echo "\nshell_string : sendtoaddress " . $row[ 'address_merchant' ] .' '. $sent_amount .' '. $sendtoaddress;
 
 	if( isset( $sendtoaddress['error'] ) ){
 		$cron_message = "\norder " . $row[ 'id' ] . ".\nError when trying to send $sent_amount bytes to " . $row[ 'address_merchant' ] . "\n" . $sendtoaddress['error']['code'] . " : " . $sendtoaddress['error']['message'];
@@ -324,7 +317,6 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 		if( $sendtoaddress['error']['code'] == -32603 ){
 			$query = "update bbfm set global_status = 'pending'";
 			$cron_message .= "\nNothing special to do cause BBFM will try again to send payment in one minute...";
-
 		}
 		else{
 			$query = "update bbfm set global_status = 'error'";
@@ -337,6 +329,10 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
 		}
 		cron_return_error( $cron_message, true );
+		continue;
+	}
+	else if (empty($sendtoaddress)) {
+		# empty response error, notified in jsonrpc_call
 		continue;
 	}
 
@@ -737,26 +733,6 @@ function set_to_test_mode( $row ){
 	$row[ 'sent_unit' ] = 'test_mode_sent_unit';
 	$row[ 'sent_amount' ] = $row[ 'amount_BB_asked' ] - $row[ 'fee_bbfm' ];
 	return $row;
-}
-
-function listtransactions(){
-	$client = new JsonRpcClient('http://127.0.0.1:6332');
-	$client->query(1, 'listtransactions', []);
-	$Object = jsonrpc_call( $client );
-	// echo print_r( $Object, true );
-	return $Object;
-}
-
-function cron_return_error( $msg, $notif_mail = false ){
-	echo "\n" . date("Y-m-d H:i:s") . " : BBFM : " .$msg;
-	if( $notif_mail ){
-		$MailBody = $msg;
-		$MailSubject = "BBFM cron error";
-		$ToMail = getenv('ADMIN_EMAIL');
-		if ($ToMail) {
-			my_sendmail( $MailBody, $MailSubject, $ToMail );
-		}
-	}
 }
 
 function build_checkhash( $row ){

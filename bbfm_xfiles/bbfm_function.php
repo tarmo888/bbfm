@@ -6,78 +6,78 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 function get_input( $input_var_name, $is_mandatory = false , $regex_pattern = false, $check_fonction = false, $default = '' ){
 
-    if( isset( $_GET[ $input_var_name ] ) ){
-        $is_set = true;
-        $result = $_GET[ $input_var_name ];
-    }else if( isset( $_POST[ $input_var_name ] ) ){
-        $is_set = true;
-        $result = $_POST[ $input_var_name ];
-    }else{
-        $is_set = false;
-        $result = false;
-    }
-    // handle case of empty inputs
-    if( $is_set and strlen( $result ) == 0 ){
-        $is_set = false;
-        $result = false;
-    }
+	if( isset( $_GET[ $input_var_name ] ) ){
+		$is_set = true;
+		$result = $_GET[ $input_var_name ];
+	}else if( isset( $_POST[ $input_var_name ] ) ){
+		$is_set = true;
+		$result = $_POST[ $input_var_name ];
+	}else{
+		$is_set = false;
+		$result = false;
+	}
+	// handle case of empty inputs
+	if( $is_set and strlen( $result ) == 0 ){
+		$is_set = false;
+		$result = false;
+	}
 
-    /*
-     * special cases
-     */
-    if( $input_var_name == 'mode_notif' and $is_set ){
-        $result = strtolower( $result );
-    }
+	/*
+	 * special cases
+	 */
+	if( $input_var_name == 'mode_notif' and $is_set ){
+		$result = strtolower( $result );
+	}
 
 
-    /*
-     * mandatory check
-     */
-    if( $is_mandatory ){
-        if( ! $is_set ){
-            return_error( $input_var_name . ' not set' );
-        }
-    }
+	/*
+	 * mandatory check
+	 */
+	if( $is_mandatory ){
+		if( ! $is_set ){
+			return_error( $input_var_name . ' not set' );
+		}
+	}
 
-    /*
-     * default value
-     */
-     if( ! $result and strlen( $default ) > 0 ){
-        $result = $default;
-        return $result;
-    }
+	/*
+	 * default value
+	 */
+	 if( ! $result and strlen( $default ) > 0 ){
+		$result = $default;
+		return $result;
+	}
 
-    /*
-     * regex check
-     */
-    if( $regex_pattern and $is_set ){
-        if( ! preg_match( $regex_pattern, $result ) ){
-            return_error( $input_var_name . ' invalid format' );
-        }
-    }
+	/*
+	 * regex check
+	 */
+	if( $regex_pattern and $is_set ){
+		if( ! preg_match( $regex_pattern, $result ) ){
+			return_error( $input_var_name . ' invalid format' );
+		}
+	}
 
-    /*
-     * custom validation function check
-     */
-    if( $check_fonction and $is_set ){
-        if( ! $check_fonction( $result ) ){
-            return_error( $result. ' ' . 'not valid ' . $input_var_name );
-        }
-    }
-    return $result;
+	/*
+	 * custom validation function check
+	 */
+	if( $check_fonction and $is_set ){
+		if( ! $check_fonction( $result ) ){
+			return_error( $result. ' ' . 'not valid ' . $input_var_name );
+		}
+	}
+	return $result;
 }
 
 function check_email( $email ){
-    // error_log("email : " . $email );
-    // return filter_var($email, FILTER_VALIDATE_EMAIL);
-    /*
-     * copied from wordpress is_email() function
-     */
-    // Test for the minimum length the email can be
-    if ( strlen( $email ) < 6 ) return false;
-    // Test for an @ character after the first position
-    if ( strpos( $email, '@', 1 ) === false ) return false;
-    // Split out the local and domain parts
+	// error_log("email : " . $email );
+	// return filter_var($email, FILTER_VALIDATE_EMAIL);
+	/*
+	 * copied from wordpress is_email() function
+	 */
+	// Test for the minimum length the email can be
+	if ( strlen( $email ) < 6 ) return false;
+	// Test for an @ character after the first position
+	if ( strpos( $email, '@', 1 ) === false ) return false;
+	// Split out the local and domain parts
 	list( $local, $domain ) = explode( '@', $email, 2 );
 	// error_log("local : " . $local );
 	// LOCAL PART
@@ -117,137 +117,161 @@ function check_email( $email ){
 }
 
 function check_url( $url ){
-    return filter_var($url, FILTER_VALIDATE_URL);
+	return filter_var($url, FILTER_VALIDATE_URL);
 }
 
 function check_currency( $currency ){
-    global $_currencies;
-    if( array_key_exists ( $currency , $_currencies ) ){
-        return true;
-    }else{
-        return false;
-    }
+	global $_currencies;
+	if( array_key_exists ( $currency , $_currencies ) ){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 function check_BB_address( $address ){
-    if( preg_match( "@^[0-9A-Z]{32}$@", $address ) ){
-        return true;
-    }else{
-        return false;
-    }
+	if( preg_match( "@^[0-9A-Z]{32}$@", $address ) ){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 function check_cashback_address( $address ){
-    if( check_BB_address( $address ) ){
-        return true;
-    }else{
-        if( check_email( $address ) ){
-            return true;
-        }else{
-            return false;
-        }
-    }
+	if( check_BB_address( $address ) ){
+		return true;
+	}else{
+		if( check_email( $address ) ){
+			return true;
+		}else{
+			return false;
+		}
+	}
 }
 
 function return_error( $msg ){
-    $return = array(
-        'result' => 'nok',
-        'error_msg' => $msg,
-    );
-    die( json_encode($return) );
+	$return = array(
+		'result' => 'nok',
+		'error_msg' => $msg,
+	);
+	die( json_encode($return) );
 }
 
 function BB_conversion( $amount, $currency ){
-    $BB_rates = get_BB_rates();
-    if( ! isset( $BB_rates[ $currency ] ) ){
-        return_error( "\nerror in fetching $currency change rate.");
-    }
-    $conversion_rate = $BB_rates[ $currency ][ 'rate' ];
-    $BB_amount = round( $amount * $conversion_rate );
-    return array(
-        'BB_amount' => $BB_amount,
-        'conversion_rate' => $conversion_rate,
-        'age' => $BB_rates[ $currency ][ 'age' ]
-    );
+	$BB_rates = get_BB_rates();
+	if( ! isset( $BB_rates[ $currency ] ) ){
+		return_error( "\nerror in fetching $currency change rate.");
+	}
+	$conversion_rate = $BB_rates[ $currency ][ 'rate' ];
+	$BB_amount = round( $amount * $conversion_rate );
+	return array(
+		'BB_amount' => $BB_amount,
+		'conversion_rate' => $conversion_rate,
+		'age' => $BB_rates[ $currency ][ 'age' ]
+	);
 }
 
 function get_BB_rates(){
-    global $mysqli;
-    // factor from X to BB
-    $BB_rates = array(
-        'B' => array(
-            'rate' => 1,
-            'age' => 0,
-        ),
-        'KB' => array(
-            'rate' => 1000,
-            'age' => 0,
-        ),
-        'MB' => array(
-            'rate' => 1000000,
-            'age' => 0,
-        ),
-        'GB' => array(
-            'rate' => 1000000000,
-            'age' => 0,
-        ),
-    );
+	global $mysqli;
+	// factor from X to BB
+	$BB_rates = array(
+		'B' => array(
+			'rate' => 1,
+			'age' => 0,
+		),
+		'KB' => array(
+			'rate' => 1000,
+			'age' => 0,
+		),
+		'MB' => array(
+			'rate' => 1000000,
+			'age' => 0,
+		),
+		'GB' => array(
+			'rate' => 1000000000,
+			'age' => 0,
+		),
+	);
 
-    /*
-     * get BTC_rates from DB
-     */
-    // factor from X to BTC
-    $BTC_rates = array();
-    $q = mysqli_query($mysqli, "select *, ( unix_timestamp( now() ) - unix_timestamp( last_update ) ) as age from bbfm_currency_rate where 1");
-    while ( $row = $q->fetch_array(MYSQLI_ASSOC) ){
-        $BTC_rates[ $row[ 'code' ] ] = array(
-            'rate' => $row[ 'BTC_rate' ],
-            'age' => $row[ 'age' ],
-        );
-    }
-    // first we set BTC_B rate (needed for other B rates)
-    $BB_rates[ 'BTC' ] = array(
-                            'rate' => 1 / $BTC_rates[ 'BYTE' ][ 'rate' ] * 1000000000,
-                            'age' => $BTC_rates[ 'BYTE' ][ 'age' ],
-                        );
+	/*
+	 * get BTC_rates from DB
+	 */
+	// factor from X to BTC
+	$BTC_rates = array();
+	$q = mysqli_query($mysqli, "select *, ( unix_timestamp( now() ) - unix_timestamp( last_update ) ) as age from bbfm_currency_rate where 1");
+	while ( $row = $q->fetch_array(MYSQLI_ASSOC) ){
+		$BTC_rates[ $row[ 'code' ] ] = array(
+			'rate' => $row[ 'BTC_rate' ],
+			'age' => $row[ 'age' ],
+		);
+	}
+	// first we set BTC_B rate (needed for other B rates)
+	$BB_rates[ 'BTC' ] = array(
+		'rate' => 1 / $BTC_rates[ 'BYTE' ][ 'rate' ] * 1000000000,
+		'age' => $BTC_rates[ 'BYTE' ][ 'age' ],
+	);
 
-    // then we set other rates
-    foreach( $BTC_rates as $code => $data ){
-        if( $code == 'BYTE' ) continue;
+	// then we set other rates
+	foreach( $BTC_rates as $code => $data ){
+		if( $code == 'BYTE' ) continue;
 
-        $BB_rates[ $code ] = array(
-                                'rate' => $BTC_rates[ $code ][ 'rate' ] * $BB_rates[ 'BTC' ][ 'rate' ],
-                                'age' => $BTC_rates[ $code ][ 'age' ],
-                            );
-    }
+		$BB_rates[ $code ] = array(
+			'rate' => $BTC_rates[ $code ][ 'rate' ] * $BB_rates[ 'BTC' ][ 'rate' ],
+			'age' => $BTC_rates[ $code ][ 'age' ],
+		);
+	}
 //     error_log( "\nBB_rates : " . print_r( $BB_rates, true ) );
-    return $BB_rates;
+	return $BB_rates;
 }
 
 function fee_bbfm( $amount ){
-    $fee = 1000 + round( $amount * 0.009 ) ;
-    return $fee;
+	$fee = 1000 + round( $amount * 0.009 ) ;
+	return $fee;
 }
 
-function getnewaddressFromWallet(){
+function listTransactions(){
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
+	$client->query(1, 'listtransactions', []);
+	return jsonrpc_call( $client );
+}
+
+function getNewAddressFromWallet(){
 	$client = new JsonRpcClient('http://127.0.0.1:6332');
 	$client->query(1, 'getnewaddress', []);
-    return jsonrpc_call( $client );
+	return jsonrpc_call( $client );
+}
+
+function sendToAdress($address_merchant, $sent_amount){
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
+	$client->query(1, 'sendtoaddress', [$address_merchant, $sent_amount]);
+	return jsonrpc_call( $client );
+}
+function getNodeInfo(){
+	$client = new JsonRpcClient('http://127.0.0.1:6332');
+	$client->query(1, 'getinfo', []);
+	return jsonrpc_call( $client );
 }
 
 function jsonrpc_call( $client ){
+	$response = null;
 	try {
-		return jsonrpc_success($client->send());
+		$response = jsonrpc_success($client->send());
 	}
 	catch (Exception $e) {
 		echo 'Caught exception: ',  $e->getMessage(), "\n";
 	}
+	if( empty( $response ) ){
+		cron_return_error( "jsonrpc_call returned nothing. Headless wallet down ?", true );
+	}
+	return $response;
 }
 
 function jsonrpc_success($responses) {
 	/**
 	 * @var JsonRpcResponse[] $responses
 	 */
+	if (!$responses) return false;
+
 	foreach ($responses as $response) {
 		$id = $response->getId();
 		if ($response->isError()) {
@@ -259,6 +283,12 @@ function jsonrpc_success($responses) {
 			"    * code: ", json_encode($code), "\n",
 			"    * message: ", json_encode($message), "\n",
 			"    * data (if any): ", json_encode($data), "\n";
+			return array(
+				'error' => array(
+					'code' => $code,
+					'message' => $message,
+				)
+			);
 		}
 		else {
 			return $response->getResult();
@@ -266,6 +296,17 @@ function jsonrpc_success($responses) {
 	}
 }
 
+function cron_return_error( $msg, $notif_mail = false ){
+	echo "\n" . date("Y-m-d H:i:s") . " : BBFM : " .$msg;
+	if( $notif_mail ){
+		$MailBody = $msg;
+		$MailSubject = "BBFM cron error";
+		$ToMail = getenv('ADMIN_EMAIL');
+		if ($ToMail) {
+			my_sendmail( $MailBody, $MailSubject, $ToMail );
+		}
+	}
+}
 
 function my_sendmail( $MailBody, $MailSubject, $ToMail ){
 	echo "\nmy_sendmail( $MailSubject, $ToMail ) \n";
@@ -291,7 +332,10 @@ function my_sendmail( $MailBody, $MailSubject, $ToMail ){
 		//Recipients
 		$mail->setFrom('bbfm@obyte.org', 'Obyte for Merchants');
 		$mail->addAddress($ToMail);
-		$mail->addReplyTo('tarmo888@gmail.com', 'Obyte for Merchants');
+		$admin_email = getenv('ADMIN_EMAIL');
+		if ($admin_email) {
+			$mail->addReplyTo($admin_email, 'Obyte for Merchants');
+		}
 
 		// Content
 		$mail->isHTML(false);
