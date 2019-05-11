@@ -50,6 +50,9 @@ $error_log = '';
 $max_unhandled = 500;
 // $max_unhandled = 9999;
 $Object = getNodeInfo();
+if (empty($Object)) {
+	die('run `node --max-old-space-size=4096 tools/rpc_service.js` in headless-obyte folder');
+}
 echo print_r( $Object, true );
 $count_unhandled = $Object['count_unhandled'];
 echo "\ncount_unhandled: $count_unhandled\n";
