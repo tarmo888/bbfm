@@ -9,8 +9,8 @@ $time_in = microtime(true);
 $XFILE_PATH = __DIR__ ."/../bbfm_xfiles/";
 
 /*
-* check if previous call from cron is still running
-*/
+ * check if previous call from cron is still running
+ */
 $ps_aux = shell_exec( 'ps aux' );
 // die($ps_aux);
 $postpone_count_alert_level = 10; // will send warning email to admin if cron has been postponed more than times
@@ -45,8 +45,8 @@ if ( mysqli_connect_errno() ){
 $error_log = '';
 
 /*
-* check wallet synchro
-*/
+ * check wallet synchro
+ */
 $max_unhandled = 500;
 // $max_unhandled = 9999;
 $Object = getNodeInfo();
@@ -59,15 +59,18 @@ echo "\ncount_unhandled: $count_unhandled\n";
 if ( $count_unhandled >= $max_unhandled ){
 	cron_return_error( "important unhandled count : " . $count_unhandled . "\r\n" . "but the BBFM cron will still try to make its work..." , true );
 }
+$cron_stable_mci_file = __DIR__ .'/../log/cron_stable_mci.txt';
+$cron_stable_mci = (int)@file_get_contents( $cron_stable_mci_file );
+file_put_contents( $cron_stable_mci_file, !empty($Object['last_stable_mci']) ? $Object['last_stable_mci'] : 0 );
 
 /****************************
  * scan transactions
  */
 
 /*
-* get list of all wallet transactions
-*/
-$transactions = listTransactions();
+ * get list of wallet transactions
+ */
+$transactions = listTransactions($cron_stable_mci);
 $transactions = $transactions ? $transactions : [];
 // echo print_r( $transactions, true );
 
@@ -75,69 +78,116 @@ $debug_last_trans_nb = 10;
 $transaction_num = 0;
 foreach( $transactions as $transaction ){
 	/*
-	* debug : show last transactions
-	*/
+	 * debug : show last transactions
+	 */
 	$transaction_num ++;
 	if( $transaction_num <= $debug_last_trans_nb ){
 		echo "\nlast transaction $transaction_num : " . print_r( $transaction, true );
 	}
 
-
 	/*
-	* received transactions
-	*/
-	if( $transaction['action'] == 'received' ){
+	 * sent transactions
+	 */
+	if( $transaction['action'] == 'sent' ){
+		$query = "select * from bbfm";
+		$query .= " where sent_unit = '" . $transaction['unit'] . "'";
+		// $query .= " and global_status = 'sent' ";
+		// echo "\nquery : $query";
+		$q = mysqli_query($mysqli, $query);
+		// echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+		if( ! $q ){
+			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
+			break;
+		}
+		if( mysqli_num_rows( $q ) == 0 ){
+			// cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database", true  );
+			// continue;
 
-		/*
-		* ignoring "strange" incoming transactions (airdrop ?)
-		*/
-		// anormally small amount
-		if( $transaction['amount'] < 60000 ){
 			/*
-			* check in table bbfm_ignored_received_unit
-			*/
-			$query_select = "select * from bbfm_ignored_received_unit where unit = '" . $transaction['unit'] . "' ";
+			 * check in table bbfm_unknown_sent_unit
+			 */
+			$query_select = "select * from bbfm_unknown_sent_unit where unit = '" . $transaction['unit'] . "' ";
 			$q_select = mysqli_query($mysqli, $query_select);
 			if( mysqli_num_rows( $q_select ) == 0 ){
-				// no notif if it is (again) the 'LJ2' address (seems to be a wallet bug ?)
-				if( $transaction['my_address'] != 'LJ2YJOD6IXCII2RHV6V7A3HJSMLQZM6Y' ){
-					cron_return_error( "\nincoming unit " . $transaction['unit'] . " amount is too small ( " . $transaction['amount'] . " bytes ) and will be ignored -> bbfm will register the unit in table bbfm_ignored_received_unit.", true  );
-				}
-				mysqli_query($mysqli, "insert into bbfm_ignored_received_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
+				cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database  -> bbfm will register the unit in table bbfm_unknown_sent_unit.", true  );
+
+				mysqli_query($mysqli, "insert into bbfm_unknown_sent_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
 			}
 			continue;
 		}
+		$row = $q->fetch_array(MYSQLI_ASSOC);
 
+		/*
+		 * update sent_unit_confirmed
+		 */
+		if( $row[ 'global_status' ] == 'sent' ){
+			if( $transaction['confirmations'] and ! $row[ 'sent_unit_confirmed' ] ){
+				$query = "update bbfm set sent_unit_confirmed  = '" . $transaction['confirmations'] . "'";
+				$query .= ", global_status = 'completed'";
+				$query .= " where id = '" . $row[ 'id' ] . "'";
+				$q_send = mysqli_query($mysqli, $query);
+				if( ! $q_send ){
+					cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
+					break;
+				}
+			}
+		}
+	}
+
+	/*
+	 * received transactions
+	 */
+	if( $transaction['action'] == 'received' ){
 		$query = "select * from bbfm";
 		$query .= " where address_bbfm = '" . $transaction['my_address'] . "'";
-        // echo "\nquery : $query";
+		// echo "\nquery : $query";
 		$q = mysqli_query($mysqli, $query);
-        // echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+		// echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
 		if( ! $q ){
 			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
 			continue;
 		}
 		if( mysqli_num_rows( $q ) == 0 ){
-			/*
-			* check in table bbfm_unknown_receiving_address
-			*/
-			$query_select = "select * from bbfm_unknown_receiving_address where address = '" . $transaction['my_address'] . "' and unit = '" . $transaction['unit'] . "' ";
-			$q_select = mysqli_query($mysqli, $query_select);
-			if( mysqli_num_rows( $q_select ) == 0 ){
-				// no notif if it is (again) the 'LJ2' address (seems to be a wallet bug ?)
-				if( $transaction['my_address'] != 'LJ2YJOD6IXCII2RHV6V7A3HJSMLQZM6Y' ){
+			$query = "select * from bbfm";
+			$query .= " where sent_unit = '" . $transaction['unit'] . "'";
+			// echo "\nquery : $query";
+			$q = mysqli_query($mysqli, $query);
+			// echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
+			if( ! $q ){
+				cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
+				continue;
+			}
+			if( mysqli_num_rows( $q ) == 0 ){
+				/*
+				 * check in table bbfm_unknown_receiving_address
+				 */
+				$query_select = "select * from bbfm_unknown_receiving_address where address = '" . $transaction['my_address'] . "' and unit = '" . $transaction['unit'] . "' ";
+				$q_select = mysqli_query($mysqli, $query_select);
+				if( mysqli_num_rows( $q_select ) == 0 ){
 					cron_return_error( "\naddress " . $transaction['my_address'] . " in unit " . $transaction['unit'] . " of received transaction not found in database -> bbfm will register the address in table bbfm_unknown_receiving_address.", true  );
-				}
 
-				mysqli_query($mysqli, "insert into bbfm_unknown_receiving_address set creation=now(), address = '" . $transaction['my_address'] . "', unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
+					mysqli_query($mysqli, "insert into bbfm_unknown_receiving_address set creation=now(), address = '" . $transaction['my_address'] . "', unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
+				}
+			}
+			else {
+				/*
+				 * check in table bbfm_ignored_received_unit
+				 */
+				$query_select = "select * from bbfm_ignored_received_unit where unit = '" . $transaction['unit'] . "' ";
+				$q_select = mysqli_query($mysqli, $query_select);
+				if( mysqli_num_rows( $q_select ) == 0 ){
+					cron_return_error( "\nincoming unit " . $transaction['unit'] . " to change address -> bbfm will register the unit in table bbfm_ignored_received_unit.", false  );
+
+					mysqli_query($mysqli, "insert into bbfm_ignored_received_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
+				}
 			}
 			continue;
 		}
 
 		$row = $q->fetch_array(MYSQLI_ASSOC);
 		/*
-		* new transaction
-		*/
+		 * new transaction
+		 */
 		if( ! $row[ 'receive_unit' ] ){
 			$query = "update bbfm set receive_unit = '" . $transaction['unit'] . "'";
 			$query .= ", receive_unit_date = now()";
@@ -157,18 +207,18 @@ foreach( $transactions as $transaction ){
 			 */
 
 			/*
-			* double payment (ie: different receive_unit )
-			*/
+			 * double payment (ie: different receive_unit )
+			 */
 			if( $transaction['unit'] !==  $row[ 'receive_unit' ] ){
 				/*
-				* check in table bbfm_payment_duplicate
-				*/
+				 * check in table bbfm_payment_duplicate
+				 */
 				$query_select = "select * from bbfm_payment_duplicate where unit = '" . $transaction['unit'] . "' ";
 				$q_select = mysqli_query($mysqli, $query_select);
 				if( mysqli_num_rows( $q_select ) == 0 ){
 					/*
-					* new duplicate
-					*/
+					 * new duplicate
+					 */
 					cron_return_error( "\nreceived " . $transaction['amount'] . " bytes in unit " . $transaction['unit'] . " which is duplicate payement of bbfm id " . $row[ 'id' ] . " -> bbfm will register the unit in table bbfm_payment_duplicate.", true  );
 					$query = "insert into bbfm_payment_duplicate set creation=now(), unit = '" . $transaction['unit'] . "',  amount = '" . $transaction['amount'] . "',  bbfm_id = '" . $row[ 'id' ] . "' ";
 					$q_duplicate = mysqli_query($mysqli, $query );
@@ -177,8 +227,8 @@ foreach( $transactions as $transaction ){
 						break;
 					}
 					/*
-					* mail notify merchant
-					*/
+					 * mail notify merchant
+					 */
 					if( $row[ 'email_notif' ] ){
 						$MailBody = "Hello,
 A duplicate payement of " . $transaction['amount'] . " bytes has been detected for your order UID " . $row[ 'merchant_order_UID' ] . "
@@ -193,12 +243,11 @@ obyte-for-merchants.com
 						my_sendmail( $MailBody, $MailSubject, $ToMail );
 					}
 				}
-
-
-			/*
-			* update receive_unit_confirmed
-			*/
-			}elseif( $transaction['confirmations'] and ! $row[ 'receive_unit_confirmed' ] ){
+			}
+			elseif( $transaction['confirmations'] and ! $row[ 'receive_unit_confirmed' ] ){
+				/*
+				 * update receive_unit_confirmed
+				 */
 				$query = "update bbfm set receive_unit_confirmed = '" . $transaction['confirmations'] . "'";
 				$query .= " where id = '" . $row[ 'id' ] . "'";
 				$q_receive = mysqli_query($mysqli, $query);
@@ -209,57 +258,6 @@ obyte-for-merchants.com
 			}
 		}
 	}
-
-	/*
-	* sent transactions
-	*/
-	if( $transaction['action'] == 'sent' ){
-		$query = "select * from bbfm";
-		$query .= " where sent_unit = '" . $transaction['unit'] . "'";
-        // $query .= " and global_status = 'sent' ";
-        // echo "\nquery : $query";
-		$q = mysqli_query($mysqli, $query);
-        // echo "\nmysqli_num_rows: " . mysqli_num_rows( $q );
-		if( ! $q ){
-			cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
-			break;
-		}
-		if( mysqli_num_rows( $q ) == 0 ){
-			// cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database", true  );
-			// continue;
-
-			/*
-			* check in table bbfm_unknown_sent_unit
-			*/
-			$query_select = "select * from bbfm_unknown_sent_unit where unit = '" . $transaction['unit'] . "' ";
-			$q_select = mysqli_query($mysqli, $query_select);
-			if( mysqli_num_rows( $q_select ) == 0 ){
-				cron_return_error( "\nunit " . $transaction['unit'] . " of sent transaction not found in database  -> bbfm will register the unit in table bbfm_unknown_sent_unit.", true  );
-
-				mysqli_query($mysqli, "insert into bbfm_unknown_sent_unit set creation=now(), unit = '" . $transaction['unit'] . "', amount = '" . $transaction['amount'] . "' ");
-			}
-			continue;
-		}
-		$row = $q->fetch_array(MYSQLI_ASSOC);
-
-		/*
-		* update sent_unit_confirmed
-		*/
-		if( $row[ 'global_status' ] == 'sent' ){
-			if( $transaction['confirmations'] and ! $row[ 'sent_unit_confirmed' ] ){
-				$query = "update bbfm set sent_unit_confirmed  = '" . $transaction['confirmations'] . "'";
-				$query .= ", global_status = 'completed'";
-				$query .= " where id = '" . $row[ 'id' ] . "'";
-				$q_send = mysqli_query($mysqli, $query);
-				if( ! $q_send ){
-					cron_return_error( "\nMySQL error in query : $query" . "\n" . mysqli_error( $mysqli ), true );
-					break;
-				}
-			}
-		}
-
-	}
-
 }
 
 /****************************
@@ -297,8 +295,8 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	}
 
 	/*
-	* set amount to sent
-	*/
+	 * set amount to sent
+	 */
 	// special fee for binaryballs
 	if( $row[ 'ref_merchant' ] == 13 ){
 		$sent_amount = $row[ 'received_amount' ] - 1000;
@@ -308,8 +306,8 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	}
 
 	/*
-	* send Gbytes !
-	*/
+	 * send Gbytes !
+	 */
 	$sendtoaddress = sendToAdress($row[ 'address_merchant'] , $sent_amount);
 	echo "\nshell_string : sendtoaddress " . $row[ 'address_merchant' ] .' '. $sent_amount .' '. $sendtoaddress;
 
@@ -340,8 +338,8 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	}
 
 	/*
-	* register in database
-	*/
+	 * register in database
+	 */
 	$query = "update bbfm set global_status = 'sent'";
 	$query .= ", sent_amount  = '$sent_amount'";
 	$query .= ", fee_bbfm  = '" . fee_bbfm( $row[ 'received_amount' ] ) . "'";
@@ -357,16 +355,16 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 }
 
 /*
-* set 'sent' test mode payment to 'completed'
-*/
+ * set 'sent' test mode payment to 'completed'
+ */
 $query = "update bbfm set global_status='completed'";
 $query .= " where global_status = 'sent'";
 $query .= " and mode='test'";
 $q = mysqli_query($mysqli, $query);
 
 /*
-* set 'pending' test mode payment to 'sent'
-*/
+ * set 'pending' test mode payment to 'sent'
+ */
 $query = "update bbfm set global_status='sent'";
 $query .= " where global_status = 'pending'";
 $query .= " and receive_unit is not NULL";
@@ -374,8 +372,8 @@ $query .= " and mode='test'";
 $q = mysqli_query($mysqli, $query);
 
 /*
-* set 'pending' test mode payment to 'incoming' state
-*/
+ * set 'pending' test mode payment to 'incoming' state
+ */
 $query = "update bbfm set receive_unit='test_mode_receive_unit'";
 $query .= " where global_status = 'pending'";
 $query .= " and receive_unit is NULL";
@@ -413,15 +411,15 @@ if( ! $q ){
 
 while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	/*
-	* mode test
-	*/
+	 * mode test
+	 */
 	if( $row[ 'mode' ] == 'test' ){
 		$row = set_to_test_mode( $row );
 	}
 
 	/*
-	* receiving notification
-	*/
+	 * receiving notification
+	 */
 	if( ! $row[ 'receiving_url_notified' ] and $row[ 'receive_unit' ] and $row[ 'url_notif' ] ){
 
 		$url_notify = url_notify( $row );
@@ -434,14 +432,14 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	}
 
 	/*
-	* intermediate notification
-	*/
+	 * intermediate notification
+	 */
 
 	if( $row[ 'global_status' ] == 'sent' ){
 
 		/*
-		* email notification
-		*/
+		 * email notification
+		 */
 		if( ! $row[ 'sent_email_notified' ] and $row[ 'email_notif' ] ){
 			$email_notify = email_notify( $row );
 			// register result in database
@@ -451,14 +449,14 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 		}
 
 		/*
-		* url notification
-		*/
+		 * url notification
+		 */
 		if( ! $row[ 'sent_url_notified' ] and $row[ 'url_notif' ] ){
 			$url_notify = url_notify( $row );
 
 			/*
-			* email notify error
-			*/
+			 * email notify error
+			 */
 			if( $url_notify[ 'result' ] == 'nok' ){
 				if ( $row[ 'email_notif' ] ){
 					// email notif url notification error
@@ -474,14 +472,14 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 	}
 
 	/*
-	* final notification
-	*/
+	 * final notification
+	 */
 
 	if( $row[ 'global_status' ] == 'completed' || $row[ 'global_status' ] == 'error' ){
 
 		/*
-		* email notification
-		*/
+		 * email notification
+		 */
 		if( ! $row[ 'email_notified' ] and $row[ 'email_notif' ] ){
 			$email_notify = email_notify( $row );
 			// register result in database
@@ -491,14 +489,14 @@ while( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 		}
 
 		/*
-		* url notification
-		*/
+		 * url notification
+		 */
 		if( ! $row[ 'url_notified' ] and $row[ 'url_notif' ] ){
 			$url_notify = url_notify( $row );
 
 			/*
-			* email notify error
-			*/
+			 * email notify error
+			 */
 			if( $url_notify[ 'result' ] == 'nok' ){
 				if ( $row[ 'email_notif' ] ){
 					// email notif url notification error
@@ -543,34 +541,32 @@ sha256_digest: " . build_checkhash( $row );
 function email_notify( $row ){
 	global $_currencies;
 	/*
-	* build mail
-	*/
+	 * build mail
+	 */
 
-	/*
-	* error
-	*/
 	if( $row[ 'global_status' ] == 'error' ){
+		/*
+		 * error
+		 */
 		$mail_notif_result = 'nok';
 		$MailSubject ='*** Error on your Obyte payment for your sale ' . $row[ 'merchant_order_UID' ] . ' ***';
 		$MailBody = "An error was encountered while processing your Obyte payment.
 error_msg: " . $row[ 'error_msg' ] ."
 ";
-
-	/*
-	* completed
-	*/
 	}
 	else if( $row[ 'global_status' ] == 'completed' ){
+		/*
+		 * completed
+		 */
 		$mail_notif_result = 'ok';
 		$MailSubject ='[confirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
 		$MailBody = "Hello,
 The payment for the above mentioned order is now confirmed by the network.";
-
-	/*
-	* sent
-	*/
 	}
 	else if( $row[ 'global_status' ] == 'sent' ){
+		/*
+		 * sent
+		 */
 		$mail_notif_result = 'unconfirmed';
 		$MailSubject ='[unconfirmed] Obyte payment sent for your sale ' . $row[ 'merchant_order_UID' ];
 		$MailBody = "Hello,
@@ -583,8 +579,8 @@ You just received from us a Obyte payment for the above mentioned order! Confirm
 	}
 
 	/*
-	* common mail body
-	*/
+	 * common mail body
+	 */
 	$MailBody .= "
 
 Find all the details below :
@@ -620,8 +616,8 @@ obyte-for-merchants.com
 	$ToMail = $row[ 'email_notif' ];
 
 	/*
-	* send mail
-	*/
+	 * send mail
+	 */
 
 	if( my_sendmail( $MailBody, $MailSubject, $ToMail ) ){
 		return 'ok';
@@ -636,8 +632,8 @@ function url_notify( $row ){
 	global $_currencies;
 
 	/*
-	* set $is_woocommerce
-	*/
+	 * set $is_woocommerce
+	 */
 	if( $row[ 'merchant_id' ] == 'woocommerce' ){
 		$is_woocommerce = true;
 	}
@@ -646,8 +642,8 @@ function url_notify( $row ){
 	}
 
 	/*
-	* set $is_bballs
-	*/
+	 * set $is_bballs
+	 */
 	if( $row[ 'merchant_id' ] == 'binaryballs' ){
 		$is_bballs = true;
 	}
@@ -656,8 +652,8 @@ function url_notify( $row ){
 	}
 
 	/*
-	* build data array
-	*/
+	 * build data array
+	 */
 	$data = array(
 		'mode'  => $row[ 'mode' ],
 		'order_UID'  => $row[ 'merchant_order_UID' ],
@@ -747,8 +743,8 @@ function build_checkhash( $row ){
 
 function process_curl_request( $CURLOPT_URL, $data, $mode = 'post', $CURLOPT_USERPWD = null ){
 	/*
-	* prepare GET notif
-	*/
+	 * prepare GET notif
+	 */
 	if( $mode == 'get' ){
 		$CURLOPT_URL = $CURLOPT_URL . '?' . http_build_query( $data );
 		$setopt_array = array(
@@ -765,8 +761,8 @@ function process_curl_request( $CURLOPT_URL, $data, $mode = 'post', $CURLOPT_USE
 		);
 
 	/*
-	* prepare POST notif
-	*/
+	 * prepare POST notif
+	 */
 	}
 	else{
 		$setopt_array = array(
@@ -794,8 +790,8 @@ function process_curl_request( $CURLOPT_URL, $data, $mode = 'post', $CURLOPT_USE
 	}
 
 	/*
-	* execute curl request
-	*/
+	 * execute curl request
+	 */
 	echo "\nmake $mode request to $CURLOPT_URL : " . print_r( $data, true );
 	$curl = curl_init();
 	curl_setopt_array($curl, $setopt_array );

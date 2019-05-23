@@ -229,9 +229,9 @@ function fee_bbfm( $amount ){
 	return $fee;
 }
 
-function listTransactions(){
+function listTransactions($since_mci = 0, $asset = null){
 	$client = new JsonRpcClient('http://127.0.0.1:6332');
-	$client->query(1, 'listtransactions', []);
+	$client->query(1, 'listtransactions', ['since_mci'=> $since_mci, 'asset' => $asset]);
 	return jsonrpc_call( $client );
 }
 
@@ -241,9 +241,9 @@ function getNewAddressFromWallet(){
 	return jsonrpc_call( $client );
 }
 
-function sendToAdress($address_merchant, $sent_amount){
+function sendToAdress($address_merchant, $sent_amount, $asset = null){
 	$client = new JsonRpcClient('http://127.0.0.1:6332');
-	$client->query(1, 'sendtoaddress', [$address_merchant, $sent_amount]);
+	$client->query(1, 'sendtoaddress', [$address_merchant, $sent_amount, $asset]);
 	return jsonrpc_call( $client );
 }
 function getNodeInfo(){
@@ -260,7 +260,7 @@ function jsonrpc_call( $client ){
 	catch (Exception $e) {
 		echo 'Caught exception: ',  $e->getMessage(), "\n";
 	}
-	if( empty( $response ) ){
+	if( empty( $response ) && !is_array($response) ){
 		cron_return_error( "jsonrpc_call returned nothing. Headless wallet down ?", true );
 	}
 	return $response;

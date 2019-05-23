@@ -1,5 +1,6 @@
 vendor/*
 **/bbfm_www/pma
 .env
-cron_postpone_counter.txt
 callback_test.txt
+cron_postpone_counter.txt
+cron_stable_mci.txt
