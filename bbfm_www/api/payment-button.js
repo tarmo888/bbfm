@@ -118,7 +118,7 @@ function bbfm_display_payment_link(){
 	var BBaddress = BBFM_return.BBaddress;
 	var amount_BB_asked = BBFM_return.amount_BB_asked;
 
-	var payment_url = 'byteball:' + BBaddress + '?amount=' + amount_BB_asked;
+	var payment_url = 'obyte:' + BBaddress + '?amount=' + amount_BB_asked;
 	var innerButton =  document.getElementById("bbfm_button").innerHTML;
 	if( bbfm_params['mode'] == 'live' ){
 		document.getElementById("bbfm_button").innerHTML = '<a href="' + payment_url + '">' + innerButton + '</a>';
