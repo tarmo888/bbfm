@@ -12,7 +12,7 @@ include_once __DIR__ .'/../bbfm_xfiles/mysqli_connect.php';
 $percentmax = (int)getenv('PERCENTAGE_MAX'); //max change allowed (in percent) in between two consrcutives values for GBYTE
 $percentmax = $percentmax ? $percentmax : 30;
 
-$rate_url="https://api.coinmarketcap.com/v1/ticker/obyte/";
+$rate_url="https://api.coinpaprika.com/v1/tickers/gbyte-obyte?quotes=BTC";
 $json_array= json_decode(make_443_get ($rate_url), true);
 
 $query = "select * from bbfm_currency_rate where code='BYTE' limit 1";
@@ -24,13 +24,13 @@ if ( $q && $q->num_rows ) {
 	$old_value = $rep[ 'BTC_rate' ];
 }
 
-if(empty($json_array["error"]) && !empty($json_array[0]['price_btc'])){
-	$GBYTE_BTC_value = $json_array['0']['price_btc'];
+if(empty($json_array["error"]) && !empty($json_array['quotes']['BTC']['price'])){
+	$GBYTE_BTC_value = $json_array['quotes']['BTC']['price'];
 	$percentChange = $old_value ? ($GBYTE_BTC_value - $old_value) / $old_value * 100 : 0;
 	//echo $percentChange;
 
 	if(abs($percentChange) < $percentmax){
-		$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $GBYTE_BTC_value, 'BYTE', $GBYTE_BTC_value);
+		$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%s, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %s, last_update=now();', $GBYTE_BTC_value, 'BYTE', $GBYTE_BTC_value);
 		$q = mysqli_query($mysqli, $query);
 		if ( !$q ) {
 			echo "Problem here...";
@@ -48,8 +48,8 @@ if(empty($json_array["error"]) && !empty($json_array[0]['price_btc'])){
 	}
 }
 else {
-	$MailSubject = 'Error fetching currencies for GBYTE from CMC';
-	$MailBody = "https://api.coinmarketcap.com/v1/ticker/obyte/\n";
+	$MailSubject = 'Error fetching currencies for GBYTE from CoinPaprika';
+	$MailBody = $rate_url ."\n";
 	$MailBody .= 'Curl error_code is:'. (empty($json_array["error_code"]) ? 'X' : $json_array["error_code"]);
 	$ToMail  = getenv('ADMIN_EMAIL');
 
@@ -58,124 +58,22 @@ else {
 	}
 }
 
-//fetch various FIAT rates against BTC
-$rate_url="https://blockchain.info/fr/ticker";
+//fetch various currency rates against BTC
+$rate_url="https://api.coinpaprika.com/v1/tickers/btc-bitcoin?quotes=ETH,USD,EUR,PLN,KRW,GBP,CAD,JPY,RUB,TRY,NZD,AUD,CHF,UAH,HKD,SGD,NGN,PHP,MXN,BRL,THB,CLP,CNY,CZK,DKK,HUF,IDR,ILS,INR,MYR,NOK,PKR,SEK,TWD,ZAR,VND,BOB,COP,PEN,ARS,ISK";
 $json_array= json_decode(make_443_get ($rate_url), true);
 
-if(empty($json_array["error"])){
-	$USD_BTC_value=1/$json_array['USD']['15m'];
-	$AUD_BTC_value=1/$json_array['AUD']['15m'];
-	$BRL_BTC_value=1/$json_array['BRL']['15m'];
-	$CAD_BTC_value=1/$json_array['CAD']['15m'];
-	$CHF_BTC_value=1/$json_array['CHF']['15m'];
-	$CLP_BTC_value=1/$json_array['CLP']['15m'];
-	$CNY_BTC_value=1/$json_array['CNY']['15m'];
-	$DKK_BTC_value=1/$json_array['DKK']['15m'];
-	$EUR_BTC_value=1/$json_array['EUR']['15m'];
-	$GBP_BTC_value=1/$json_array['GBP']['15m'];
-	$HKD_BTC_value=1/$json_array['HKD']['15m'];
-	$INR_BTC_value=1/$json_array['INR']['15m'];
-	$ISK_BTC_value=1/$json_array['ISK']['15m'];
-	$JPY_BTC_value=1/$json_array['JPY']['15m'];
-	$KRW_BTC_value=1/$json_array['KRW']['15m'];
-	$NZD_BTC_value=1/$json_array['NZD']['15m'];
-	$PLN_BTC_value=1/$json_array['PLN']['15m'];
-	$RUB_BTC_value=1/$json_array['RUB']['15m'];
-	$SEK_BTC_value=1/$json_array['SEK']['15m'];
-	$SGD_BTC_value=1/$json_array['SGD']['15m'];
-	$THB_BTC_value=1/$json_array['THB']['15m'];
-	$TWD_BTC_value=1/$json_array['TWD']['15m'];
+if(empty($json_array["error"]) && !empty($json_array['quotes'])){
+	foreach ($json_array['quotes'] as $ticker => $quote) {
+		if (empty($quote['price'])) continue;
 
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $USD_BTC_value, 'USD', $USD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $AUD_BTC_value, 'AUD', $AUD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $BRL_BTC_value, 'BRL', $BRL_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CAD_BTC_value, 'CAD', $CAD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CHF_BTC_value, 'CHF', $CHF_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CLP_BTC_value, 'CLP', $CLP_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CNY_BTC_value, 'CNY', $CNY_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $DKK_BTC_value, 'DKK', $DKK_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $EUR_BTC_value, 'EUR', $EUR_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $GBP_BTC_value, 'GBP', $GBP_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $HKD_BTC_value, 'HKD', $HKD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $INR_BTC_value, 'INR', $INR_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $ISK_BTC_value, 'ISK', $ISK_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $JPY_BTC_value, 'JPY', $JPY_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $KRW_BTC_value, 'KRW', $KRW_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $NZD_BTC_value, 'NZD', $NZD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $PLN_BTC_value, 'PLN', $PLN_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $RUB_BTC_value, 'RUB', $RUB_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $SEK_BTC_value, 'SEK', $SEK_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $SGD_BTC_value, 'SGD', $SGD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $THB_BTC_value, 'THB', $THB_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $TWD_BTC_value, 'TWD', $TWD_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-}
-else {
-	$MailSubject = 'Error fetching currencies from blockchain.info';
-	$MailBody = "https://blockchain.info/fr/ticker\n";
-	$MailBody .= 'Curl error_code is:'. $json_array["error_code"];
-	$ToMail  = getenv('ADMIN_EMAIL');
-
-	if ($ToMail) {
-		my_sendmail( $MailBody, $MailSubject, $ToMail );
+		$BTC_value = 1/$quote['price'];
+		$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%s, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %s, last_update=now();', $BTC_value, $ticker, $BTC_value);
+		$q = mysqli_query($mysqli, $query);
 	}
 }
-
-// except for CZK
-$rate_url="https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK";
-$json_array= json_decode(make_443_get ($rate_url), true);
-if(empty($json_array["error"]) && !empty($json_array[0]['price_czk'])){
-	//var_dump($json_array);
-	$CZK_BTC_value=1/$json_array[0]['price_czk'];
-	$query = sprintf('INSERT INTO bbfm_currency_rate (BTC_rate, last_update, code) VALUES (%f, now(), "%s") ON DUPLICATE KEY UPDATE BTC_rate = %f, last_update=now();', $CZK_BTC_value, 'CZK', $CZK_BTC_value);
-	$q = mysqli_query($mysqli, $query);
-	//echo $CZK_BTC_value;
-}
 else {
-	$MailSubject = 'Error fetching currencies for CZK from CMC';
-	$MailBody = "https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=CZK\n";
+	$MailSubject = 'Error fetching currencies for BTC from CoinPaprika';
+	$MailBody = $rate_url ."\n";
 	$MailBody .= 'Curl error_code is:'. (empty($json_array["error_code"]) ? 'X' : $json_array["error_code"]);
 	$ToMail  = getenv('ADMIN_EMAIL');
 

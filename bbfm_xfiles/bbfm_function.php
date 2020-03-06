@@ -198,7 +198,7 @@ function get_BB_rates(){
 	 */
 	// factor from X to BTC
 	$BTC_rates = array();
-	$q = mysqli_query($mysqli, "select *, ( unix_timestamp( now() ) - unix_timestamp( last_update ) ) as age from bbfm_currency_rate where 1");
+	$q = mysqli_query($mysqli, "SELECT *, ( UNIX_TIMESTAMP( NOW() ) - UNIX_TIMESTAMP( last_update ) ) AS age FROM bbfm_currency_rate WHERE BTC_rate > 0;");
 	while ( $row = $q->fetch_array(MYSQLI_ASSOC) ){
 		$BTC_rates[ $row[ 'code' ] ] = array(
 			'rate' => $row[ 'BTC_rate' ],
