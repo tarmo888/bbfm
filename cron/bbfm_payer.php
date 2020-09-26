@@ -806,6 +806,7 @@ function process_curl_request( $CURLOPT_URL, $data, $mode = 'post', $CURLOPT_USE
 	}
 	else{
 		$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
 		if( $httpcode == '200' ){
 			return array(
 				'result' => 'ok',

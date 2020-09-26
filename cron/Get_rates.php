@@ -86,6 +86,7 @@ function make_443_get ($url) {
 	$url = $url;
 	$timeout = 10;
 
+	sleep(1);
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -97,6 +98,7 @@ function make_443_get ($url) {
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
 	if($output = curl_exec($ch)){
+		curl_close($ch);
 		return $output;
 	}
 	else {

@@ -90,6 +90,7 @@ function notify_curl_request( $CURLOPT_URL, $data, $mode = 'post' ){
 	}
 	else{
 		$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
 		if( $httpcode == '200' || $httpcode == '401' ){
 			echo 'ok - ' . $CURLOPT_URL ."\n";
 		}
